@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#1e3a8a" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  
+  <!-- Background Rounded Rect -->
+  <rect width="512" height="512" rx="112" fill="url(#grad)" />
+  
+  <!-- Subtle decorative ring -->
+  <circle cx="256" cy="256" r="210" fill="none" stroke="#60a5fa" stroke-width="4" stroke-opacity="0.3" stroke-dasharray="12 8" />
+  
+  <!-- Modern Building & Discovery Pin Emblem -->
+  <g filter="url(#shadow)">
+    <!-- Pin background -->
+    <path d="M256 96 C185 96 128 153 128 224 C128 316 256 416 256 416 C256 416 384 316 384 224 C384 153 327 96 256 96 Z" fill="#ffffff" />
+    
+    <!-- Inner Pin Accent with Vidisha V Architecture -->
+    <path d="M256 128 C202 128 158 172 158 226 C158 298 256 376 256 376 C256 376 354 298 354 226 C354 172 310 128 256 128 Z" fill="#eff6ff" />
+    
+    <!-- Stylized V with Sun / Stupa monument motif (Heliodorus pillar & Sanchi/Vidisha heritage) -->
+    <path d="M200 180 L256 310 L312 180 L284 180 L256 250 L228 180 Z" fill="#2563eb" />
+    
+    <!-- Star / Beacon -->
+    <circle cx="256" cy="165" r="14" fill="#f59e0b" />
+  </g>
+  
+  <!-- Sparkles -->
+  <circle cx="390" cy="130" r="10" fill="#fef08a" />
+  <circle cx="120" cy="380" r="8" fill="#93c5fd" />
+</svg>

@@ -1,0 +1,95 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Server-enforced administrator role check
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.admin == true ||
+        exists(/databases/$(database)/documents/adminUsers/$(request.auth.uid))
+      );
+    }
+
+    // Categories: Public can read active categories, only admin can write
+    match /categories/{categoryId} {
+      allow read: if resource.data.isActive == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Businesses:
+    // - Public can read ONLY approved businesses
+    // - Admin has full control
+    // - Business owners (if linked via ownerUid) can update non-critical presentation fields only
+    match /businesses/{businessId} {
+      allow read: if resource.data.approvalStatus == 'approved' || isAdmin();
+      allow create: if isAdmin();
+      allow update: if isAdmin() || (
+        isAuthenticated() &&
+        resource.data.ownerUid == request.auth.uid &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'approvalStatus', 'paymentStatus', 'isTop10', 'top10Position', 'listingExpiresAt', 'packageId'
+        ])
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Top 10 Listing Slots: Read-only for public; only administrators can modify
+    match /listingSlots/{slotId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Offers: Public can view active offers (or all offers if unauthenticated query), admin can manage
+    match /offers/{offerId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Offer Claims: Authenticated users can claim and see their own claims
+    match /offerClaims/{claimId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin();
+    }
+
+    // Listing Applications: Users can submit applications, admins manage them
+    match /listingApplications/{appId} {
+      allow create: if true;
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.ownerUid == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+
+    // Payment Records: Private to user and admin
+    match /paymentRecords/{paymentId} {
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow write: if isAdmin();
+    }
+
+    // Global App Settings: Public read, admin write
+    match /appSettings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // User Reports: Anyone can submit a report, admin reads and manages
+    match /reports/{reportId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Audit Logs: Strictly admin only
+    match /auditLogs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Admin Users Directory
+    match /adminUsers/{userId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

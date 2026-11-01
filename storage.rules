@@ -1,0 +1,35 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/(jpeg|png|webp|svg\\+xml)');
+    }
+
+    function isUnder5MB() {
+      return request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // Public business photos and media
+    match /businesses/{businessId}/{fileName} {
+      allow read: if true;
+      allow write: if isAuthenticated() && isImage() && isUnder5MB();
+    }
+
+    // Application submission uploads
+    match /applications/{applicationId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isImage() && isUnder5MB();
+    }
+
+    // Promotional offer banners
+    match /offers/{offerId}/{fileName} {
+      allow read: if true;
+      allow write: if isAuthenticated() && isImage() && isUnder5MB();
+    }
+  }
+}
