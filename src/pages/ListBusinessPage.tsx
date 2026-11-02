@@ -9,8 +9,6 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
-  FileText,
-  Upload,
   ArrowRight,
   ShieldCheck,
   Tag,
@@ -117,7 +115,6 @@ export const ListBusinessPage: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    // Validations
     if (!formData.businessName.trim() || formData.businessName.length < 2) {
       setError('Business name is required.');
       return;
@@ -135,7 +132,6 @@ export const ListBusinessPage: React.FC = () => {
       return;
     }
 
-    // Category Slot Limit Enforcement (Strict max 10 businesses per category)
     const selectedCat = categories.find((c) => c.id === formData.categoryId);
     const occupiedSlots = Math.min(10, selectedCat?.businessCount || 0);
     if (occupiedSlots >= 10) {
@@ -143,7 +139,6 @@ export const ListBusinessPage: React.FC = () => {
       return;
     }
 
-    // Require paid package
     if (formData.requestedPackage !== 'complete' && formData.requestedPackage !== 'priority') {
       setError('Please select a valid paid listing package (Complete Listing or Priority Listing).');
       return;
@@ -162,36 +157,25 @@ export const ListBusinessPage: React.FC = () => {
         .map((s) => s.trim())
         .filter(Boolean);
 
-      const selectedPkg = formData.requestedPackage;
-      let gallery: string[] = [];
-      if (selectedPkg === 'complete') {
-        gallery = [formData.photo1, formData.photo2]
-          .map((s) => s.trim())
-          .filter(Boolean)
-          .slice(0, 2);
-      } else {
-        // priority
-        gallery = [formData.photo1, formData.photo2, formData.photo3]
-          .map((s) => s.trim())
-          .filter(Boolean)
-          .slice(0, 3);
-      }
+      const gallery = [formData.photo1, formData.photo2, formData.photo3]
+        .map((p) => p.trim())
+        .filter(Boolean);
 
       const res = await ApplicationService.submitApplication({
         businessName: formData.businessName.trim(),
         ownerName: formData.ownerName.trim(),
         phone: formData.phone.trim(),
-        whatsapp: (formData.whatsapp.trim() || formData.phone.trim()),
+        whatsapp: formData.whatsapp.trim() || formData.phone.trim(),
         email: formData.email.trim() || undefined,
         categoryId: formData.categoryId,
-        address: formData.address.trim(),
         locality: formData.locality,
+        address: formData.address.trim(),
         description: formData.description.trim(),
         services,
-        openingHours: formData.openingHours,
-        weeklyOff: formData.weeklyOff,
-        requestedPackage: formData.requestedPackage,
+        openingHours: formData.openingHours.trim(),
+        weeklyOff: formData.weeklyOff.trim(),
         websiteUrl: formData.websiteUrl.trim() || undefined,
+        requestedPackage: formData.requestedPackage,
         logoUrl: formData.logoUrl.trim() || undefined,
         gallery,
         consentTerms: true,
@@ -212,56 +196,48 @@ export const ListBusinessPage: React.FC = () => {
   // SUCCESS SCREEN
   if (submittedApplication) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-12">
-        <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200 shadow-xl text-center">
-          <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-4">
+      <div className="max-w-2xl mx-auto px-4 py-12 text-white pb-28">
+        <div className="bg-[#141418] rounded-3xl p-8 sm:p-10 border border-[#26262e] shadow-2xl text-center">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-gold-500 to-gold-600 text-dark-950 flex items-center justify-center mx-auto mb-4 font-bold shadow-md">
             <CheckCircle2 className="w-10 h-10" />
           </div>
 
-          <h2 className="text-2xl font-black text-slate-900 mb-2">
+          <h2 className="font-serif text-2xl font-bold text-white mb-2">
             Application Submitted Successfully!
           </h2>
-          <p className="text-sm text-slate-600 mb-6 leading-relaxed">
-            Thank you, <span className="font-bold text-slate-900">{submittedApplication.ownerName}</span>. Your listing application for <span className="font-bold text-blue-700">{submittedApplication.businessName}</span> has been received with status <span className="font-bold uppercase text-amber-600 bg-amber-50 px-2 py-0.5 rounded">Pending Approval</span>.
+          <p className="text-sm text-[#a1a1aa] mb-6 leading-relaxed font-light">
+            Thank you, <span className="font-bold text-white">{submittedApplication.ownerName}</span>. Your listing application for <span className="font-bold text-gold-400">{submittedApplication.businessName}</span> has been received with status <span className="font-bold uppercase text-gold-400 bg-gold-400/10 border border-gold-500/30 px-2 py-0.5 rounded-full text-xs">Pending Approval</span>.
           </p>
 
-          {/* Reference tracking box */}
-          <div className="bg-slate-50 border border-dashed border-slate-300 rounded-2xl p-4 text-left text-xs space-y-2 mb-6">
+          <div className="bg-[#191922] border border-dashed border-[#333342] rounded-2xl p-4 text-left text-xs space-y-2 mb-6">
             <div className="flex justify-between">
-              <span className="text-slate-500 font-medium">Application Reference ID:</span>
-              <span className="font-mono font-bold text-slate-900">{submittedApplication.id}</span>
+              <span className="text-[#a1a1aa]">Application Reference ID:</span>
+              <span className="font-mono font-bold text-gold-400">{submittedApplication.id}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500 font-medium">Requested Package:</span>
-              <span className="font-bold text-blue-700 capitalize">{submittedApplication.requestedPackage}</span>
+              <span className="text-[#a1a1aa]">Requested Package:</span>
+              <span className="font-bold text-white capitalize">{submittedApplication.requestedPackage}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500 font-medium">Date Submitted:</span>
-              <span className="text-slate-700">{new Date(submittedApplication.submittedAt).toLocaleString()}</span>
+              <span className="text-[#a1a1aa]">Date Submitted:</span>
+              <span className="text-[#d4d4d8]">{new Date(submittedApplication.submittedAt).toLocaleString()}</span>
             </div>
           </div>
 
-          {/* Next Steps for Verification & Activation */}
-          <div className="bg-blue-50/70 border border-blue-200 rounded-2xl p-5 text-left text-xs text-slate-700 mb-8 space-y-2.5">
-            <h4 className="font-bold text-blue-900 text-sm flex items-center space-x-1.5">
-              <ShieldCheck className="w-4 h-4 text-blue-600" />
+          <div className="bg-[#1a1a24] border border-gold-500/30 rounded-2xl p-5 text-left text-xs text-[#d4d4d8] mb-8 space-y-2.5 font-light">
+            <h4 className="font-bold text-gold-400 text-sm flex items-center space-x-1.5">
+              <ShieldCheck className="w-4 h-4 text-gold-400" />
               <span>Next Steps for Verification & Activation</span>
             </h4>
-            <p>
-              1. <strong>Application Review:</strong> Our administrative team will review your business details and contact information. We may contact you if any additional information is required.
-            </p>
-            <p>
-              2. <strong>Payment Instructions:</strong> Our listing manager will contact you on WhatsApp or phone at <strong>7000845940</strong> with the verified payment details for your selected package.
-            </p>
-            <p>
-              3. <strong>Verification & Activation:</strong> Once your payment is verified by our administrator and your application is approved, your business listing and applicable package benefits will be activated on the Vidisha City directory.
-            </p>
+            <p>1. <strong>Application Review:</strong> Our administrative team will review your business details and storefront credentials.</p>
+            <p>2. <strong>Payment Instructions:</strong> Our concierge will reach you on WhatsApp or phone at <strong>7000845940</strong> with official payment instructions for your selected package.</p>
+            <p>3. <strong>Verification & Activation:</strong> Once verified, your business profile and priority benefits will immediately go live in its category slot.</p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
               to="/"
-              className="px-6 py-3 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 shadow-md"
+              className="px-6 py-3 rounded-full bg-gradient-to-r from-gold-400 via-gold-500 to-gold-400 text-dark-950 font-bold text-sm shadow-md"
             >
               Back to Home
             </Link>
@@ -290,7 +266,7 @@ export const ListBusinessPage: React.FC = () => {
                   consentTerms: false,
                 });
               }}
-              className="px-6 py-3 rounded-xl bg-slate-100 text-slate-700 font-bold text-sm hover:bg-slate-200"
+              className="px-6 py-3 rounded-full bg-[#1e1e28] text-[#d4d4d8] hover:text-white border border-[#2e2e38] font-semibold text-sm"
             >
               Submit Another Business
             </button>
@@ -302,28 +278,28 @@ export const ListBusinessPage: React.FC = () => {
 
   // APPLICATION FORM
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-28 text-white">
       {/* Header */}
       <div className="text-center max-w-2xl mx-auto mb-8">
-        <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">
+        <span className="text-xs font-bold text-gold-400 uppercase tracking-wider">
           Official Merchant Onboarding
         </span>
-        <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight mt-1 mb-2">
+        <h1 className="font-serif text-2xl sm:text-4xl font-bold text-white tracking-tight mt-1 mb-2">
           List Your Business on Vidisha City
         </h1>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-[#a1a1aa] font-light">
           Connect with local customers across Vidisha. Fill out the application form below for administrative review and activation.
         </p>
 
         {/* Tab Selection */}
-        <div className="flex rounded-2xl bg-slate-200/70 p-1.5 max-w-md mx-auto mt-6 text-xs font-bold">
+        <div className="flex rounded-full bg-[#141418] border border-[#2a2a34] p-1.5 max-w-md mx-auto mt-6 text-xs font-bold">
           <button
             type="button"
             onClick={() => setActiveTab('apply')}
-            className={`flex-1 py-2.5 rounded-xl transition-all ${
+            className={`flex-1 py-2.5 rounded-full transition-all ${
               activeTab === 'apply'
-                ? 'bg-white text-blue-700 shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-gradient-to-r from-gold-400 to-gold-500 text-dark-950 shadow-md'
+                : 'text-[#a1a1aa] hover:text-white'
             }`}
           >
             Submit New Listing
@@ -331,10 +307,10 @@ export const ListBusinessPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveTab('track')}
-            className={`flex-1 py-2.5 rounded-xl transition-all flex items-center justify-center space-x-1.5 ${
+            className={`flex-1 py-2.5 rounded-full transition-all flex items-center justify-center space-x-1.5 ${
               activeTab === 'track'
-                ? 'bg-white text-blue-700 shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-gradient-to-r from-gold-400 to-gold-500 text-dark-950 shadow-md'
+                : 'text-[#a1a1aa] hover:text-white'
             }`}
           >
             <Search className="w-3.5 h-3.5" />
@@ -345,66 +321,66 @@ export const ListBusinessPage: React.FC = () => {
 
       {activeTab === 'track' ? (
         /* APPLICATION TRACKER VIEW */
-        <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-6">
+        <div className="bg-[#141418] rounded-3xl p-6 sm:p-10 border border-[#26262e] shadow-xl space-y-6">
           <div className="max-w-xl mx-auto text-center space-y-2">
-            <h2 className="text-xl font-bold text-slate-900">Track Your Listing Application</h2>
-            <p className="text-xs text-slate-500">
+            <h2 className="font-serif text-xl font-bold text-white">Track Your Listing Application</h2>
+            <p className="text-xs text-[#a1a1aa] font-light">
               Enter the mobile phone number or Application Reference ID you used when submitting your business.
             </p>
           </div>
 
           <form onSubmit={handleTrackSubmit} className="max-w-md mx-auto flex gap-2">
             <div className="relative flex-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-[#71717a] absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 required
                 value={trackingQuery}
                 onChange={(e) => setTrackingQuery(e.target.value)}
                 placeholder="Phone number or App ID (e.g. 94250... or app-)"
-                className="w-full pl-10 pr-3 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-300 focus-ring"
+                className="w-full pl-10 pr-3 py-2.5 text-xs sm:text-sm rounded-full border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#1c1c22] text-white placeholder-[#71717a]"
               />
             </div>
             <button
               type="submit"
               disabled={trackingLoading}
-              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md transition-transform active:scale-95 disabled:opacity-50"
+              className="px-6 py-2.5 rounded-full bg-gradient-to-r from-gold-500 to-gold-600 text-dark-950 font-bold text-xs sm:text-sm shadow-md disabled:opacity-50"
             >
               {trackingLoading ? 'Searching...' : 'Check Status'}
             </button>
           </form>
 
           {trackingResults !== null && (
-            <div className="mt-8 border-t border-slate-100 pt-6">
+            <div className="mt-8 border-t border-[#24242c] pt-6">
               {trackingResults.length === 0 ? (
-                <div className="text-center p-8 bg-slate-50 rounded-2xl border border-dashed border-slate-300 text-xs text-slate-500">
+                <div className="text-center p-8 bg-[#181820] rounded-2xl border border-dashed border-[#333342] text-xs text-[#a1a1aa]">
                   No applications found matching "{trackingQuery}". Please check the phone number or Application ID.
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <h3 className="text-sm font-bold text-slate-900">
+                  <h3 className="text-sm font-bold text-white">
                     Found {trackingResults.length} Application(s):
                   </h3>
 
                   {trackingResults.map((app) => (
                     <div
                       key={app.id}
-                      className="p-5 rounded-2xl border border-slate-200 bg-slate-50/60 text-xs space-y-3"
+                      className="p-5 rounded-2xl border border-[#26262e] bg-[#181820] text-xs space-y-3"
                     >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#24242c] pb-3">
                         <div>
-                          <h4 className="text-base font-bold text-slate-900">{app.businessName}</h4>
-                          <p className="text-[11px] text-slate-500">Applicant: {app.ownerName} • {app.locality}, Vidisha</p>
+                          <h4 className="text-base font-bold text-white">{app.businessName}</h4>
+                          <p className="text-[11px] text-[#a1a1aa]">Applicant: {app.ownerName} • {app.locality}, Vidisha</p>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <span className="text-slate-400 font-mono text-[11px]">{app.id}</span>
+                          <span className="text-[#a1a1aa] font-mono text-[11px]">{app.id}</span>
                           <span
                             className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
                               app.status === 'approved'
-                                ? 'bg-emerald-100 text-emerald-800'
+                                ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/40'
                                 : app.status === 'pending'
-                                ? 'bg-amber-100 text-amber-900'
-                                : 'bg-red-100 text-red-900'
+                                ? 'bg-gold-500/20 text-gold-400 border border-gold-500/40'
+                                : 'bg-rose-950/60 text-rose-400 border border-rose-500/40'
                             }`}
                           >
                             Status: {app.status}
@@ -412,21 +388,20 @@ export const ListBusinessPage: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-slate-600">
-                        <div><strong>Phone:</strong> {app.phone}</div>
-                        <div><strong>Requested Package:</strong> <span className="capitalize font-semibold text-blue-700">{app.requestedPackage}</span></div>
-                        <div><strong>Submitted Date:</strong> {new Date(app.submittedAt).toLocaleDateString()}</div>
-                        <div><strong>Address:</strong> {app.address}</div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[#d4d4d8]">
+                        <div><strong className="text-[#a1a1aa]">Phone:</strong> {app.phone}</div>
+                        <div><strong className="text-[#a1a1aa]">Requested Package:</strong> <span className="capitalize font-semibold text-gold-400">{app.requestedPackage}</span></div>
+                        <div><strong className="text-[#a1a1aa]">Submitted Date:</strong> {new Date(app.submittedAt).toLocaleDateString()}</div>
+                        <div><strong className="text-[#a1a1aa]">Address:</strong> {app.address}</div>
                       </div>
 
-                      {/* Status Explanation */}
-                      <div className="mt-2 p-3 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs leading-relaxed">
+                      <div className="mt-2 p-3 rounded-xl bg-[#141418] border border-[#2a2a34] text-xs leading-relaxed">
                         {app.status === 'pending' && (
                           <div className="flex items-start space-x-2">
-                            <Clock className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                            <Clock className="w-4 h-4 text-gold-400 shrink-0 mt-0.5" />
                             <div>
-                              <p className="font-bold text-amber-900">Under Administrative Review</p>
-                              <p className="text-slate-600 text-[11px] mt-0.5">
+                              <p className="font-bold text-gold-400">Under Administrative Review</p>
+                              <p className="text-[#a1a1aa] text-[11px] mt-0.5 font-light">
                                 Your application is currently awaiting admin verification. To protect directory authenticity, it will not appear publicly on the website until an administrator verifies the details and confirms payment.
                               </p>
                             </div>
@@ -435,10 +410,10 @@ export const ListBusinessPage: React.FC = () => {
 
                         {app.status === 'approved' && (
                           <div className="flex items-start space-x-2">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                             <div>
-                              <p className="font-bold text-emerald-900">Application Approved!</p>
-                              <p className="text-slate-600 text-[11px] mt-0.5">
+                              <p className="font-bold text-emerald-400">Application Approved!</p>
+                              <p className="text-[#a1a1aa] text-[11px] mt-0.5 font-light">
                                 Your business profile has been approved by the administration.
                                 {app.adminNotes && ` Note: ${app.adminNotes}`}
                               </p>
@@ -448,10 +423,10 @@ export const ListBusinessPage: React.FC = () => {
 
                         {app.status === 'rejected' && (
                           <div className="flex items-start space-x-2">
-                            <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
                             <div>
-                              <p className="font-bold text-red-900">Application Not Approved</p>
-                              <p className="text-slate-600 text-[11px] mt-0.5">
+                              <p className="font-bold text-rose-400">Application Not Approved</p>
+                              <p className="text-[#a1a1aa] text-[11px] mt-0.5 font-light">
                                 Reason: {app.adminNotes || app.rejectionReason || 'Please contact Vidisha City support for details.'}
                               </p>
                             </div>
@@ -468,504 +443,413 @@ export const ListBusinessPage: React.FC = () => {
       ) : (
         /* APPLICATION SUBMISSION FORM */
         <>
-          {/* Important Directory Disclosure Notice */}
-          <div className="mb-6 p-4 bg-blue-50/80 rounded-2xl border border-blue-200 text-xs text-blue-900 flex items-start space-x-3">
-            <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
-            <div className="leading-relaxed">
-              <p className="font-bold mb-0.5">How Verification Works on Vidisha City:</p>
+          <div className="mb-6 p-4 bg-[#141418] rounded-2xl border border-gold-500/30 text-xs text-[#d4d4d8] flex items-start space-x-3">
+            <Info className="w-5 h-5 text-gold-400 shrink-0 mt-0.5" />
+            <div className="leading-relaxed font-light">
+              <p className="font-bold text-gold-400 mb-0.5">How Verification Works on Vidisha City:</p>
               <p>
                 To maintain authentic local directory standards and eliminate spam, submissions are recorded with <strong>"Pending"</strong> status and do not appear on the public website immediately. Our admin reviews each application and activates verified profiles upon payment verification. You can track your status anytime under the <strong>"Track Application Status"</strong> tab.
               </p>
             </div>
           </div>
 
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 text-red-800 text-sm rounded-2xl border border-red-200 flex items-center space-x-2">
-          <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-8">
-        {/* Section 1: Business Identity */}
-        <div>
-          <h2 className="text-base font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100 flex items-center space-x-2">
-            <Building2 className="w-4 h-4 text-blue-600" />
-            <span>1. Business Details</span>
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Official Business Name *
-              </label>
-              <input
-                type="text"
-                required
-                name="businessName"
-                value={formData.businessName}
-                onChange={handleChange}
-                placeholder="e.g. Mahavir Cloth Stores, Dr. Sharma Clinic"
-                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus-ring"
-              />
+          {error && (
+            <div className="mb-6 p-4 bg-rose-950/40 text-rose-300 text-sm rounded-2xl border border-rose-500/30 flex items-center space-x-2">
+              <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+              <span>{error}</span>
             </div>
+          )}
 
+          <form onSubmit={handleSubmit} className="bg-[#141418] rounded-3xl p-6 sm:p-10 border border-[#26262e] shadow-xl space-y-8">
+            {/* Section 1: Business Identity */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Owner / Authorized Contact Name *
-              </label>
-              <input
-                type="text"
-                required
-                name="ownerName"
-                value={formData.ownerName}
-                onChange={handleChange}
-                placeholder="e.g. Rakesh Jain"
-                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus-ring"
-              />
-            </div>
+              <h2 className="font-serif text-base font-bold text-white mb-4 pb-2 border-b border-[#24242c] flex items-center space-x-2">
+                <Building2 className="w-4 h-4 text-gold-400" />
+                <span>1. Business Details</span>
+              </h2>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Primary Business Category *
-              </label>
-              <select
-                required
-                name="categoryId"
-                value={formData.categoryId}
-                onChange={handleChange}
-                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus-ring bg-white"
-              >
-                {categories.map((c) => {
-                  const occupied = Math.min(10, c.businessCount || 0);
-                  const available = Math.max(0, 10 - occupied);
-                  const isFull = available === 0;
-                  return (
-                    <option key={c.id} value={c.id} disabled={isFull}>
-                      {c.name} {isFull ? '(FULL — 0 of 10 slots left)' : `(${available} of 10 slots available)`}
-                    </option>
-                  );
-                })}
-              </select>
-              {(() => {
-                const selectedCat = categories.find((c) => c.id === formData.categoryId);
-                const occupied = Math.min(10, selectedCat?.businessCount || 0);
-                const available = Math.max(0, 10 - occupied);
-                if (available === 0) {
-                  return (
-                    <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-semibold flex items-center space-x-2">
-                      <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
-                      <span>This category is currently FULL (all 10 slots occupied). Registrations are closed for this category. Please choose another category.</span>
-                    </div>
-                  );
-                }
-                return (
-                  <p className="mt-1.5 text-xs text-slate-500 flex items-center space-x-1">
-                    <span className="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
-                    <span>
-                      <strong className="text-emerald-700">{available} of 10 slots remaining</strong> in {selectedCat?.name || 'this category'}.
-                    </span>
-                  </p>
-                );
-              })()}
-            </div>
-          </div>
-        </div>
-
-        {/* Section 2: Contact Information */}
-        <div>
-          <h2 className="text-base font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100 flex items-center space-x-2">
-            <Phone className="w-4 h-4 text-blue-600" />
-            <span>2. Contact Details</span>
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Calling Phone Number *
-              </label>
-              <input
-                type="tel"
-                required
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="+91 94250 XXXXX"
-                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus-ring"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                WhatsApp Business Number
-              </label>
-              <input
-                type="tel"
-                name="whatsapp"
-                value={formData.whatsapp}
-                onChange={handleChange}
-                placeholder="For direct customer messages"
-                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus-ring"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Email Address (Optional)
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="contact@example.com"
-                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus-ring"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Section 3: Physical Location in Vidisha */}
-        <div>
-          <h2 className="text-base font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100 flex items-center space-x-2">
-            <MapPin className="w-4 h-4 text-blue-600" />
-            <span>3. Vidisha Location & Address</span>
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Locality / Area in Vidisha *
-              </label>
-              <select
-                name="locality"
-                value={formData.locality}
-                onChange={handleChange}
-                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus-ring bg-white"
-              >
-                {vidishaLocalities.map((loc) => (
-                  <option key={loc} value={loc}>
-                    {loc}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Complete Shop / Office Address *
-              </label>
-              <input
-                type="text"
-                required
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                placeholder="Shop No., Market Complex, Street landmark, Vidisha"
-                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus-ring"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Section 4: Profile Details & Timings */}
-        <div>
-          <h2 className="text-base font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100 flex items-center space-x-2">
-            <Clock className="w-4 h-4 text-blue-600" />
-            <span>4. Profile & Timings</span>
-          </h2>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Business Description *
-              </label>
-              <textarea
-                rows={3}
-                required
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Describe your business offerings, experience, specialties, and why customers in Vidisha should visit you..."
-                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus-ring"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Services / Products (Comma separated)
-                </label>
-                <input
-                  type="text"
-                  name="servicesInput"
-                  value={formData.servicesInput}
-                  onChange={handleChange}
-                  placeholder="e.g. Sweets, Thali, Catering, Chaat"
-                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus-ring"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Working Hours
-                </label>
-                <input
-                  type="text"
-                  name="openingHours"
-                  value={formData.openingHours}
-                  onChange={handleChange}
-                  placeholder="e.g. 09:00 AM - 08:30 PM"
-                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus-ring"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Weekly Closing Day
-                </label>
-                <input
-                  type="text"
-                  name="weeklyOff"
-                  value={formData.weeklyOff}
-                  onChange={handleChange}
-                  placeholder="e.g. Sunday or None"
-                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus-ring"
-                />
-              </div>
-            </div>
-
-            {/* Photograph Fields conditioned on Selected Package */}
-            {formData.requestedPackage === 'complete' ? (
-              <div className="space-y-3 p-4 bg-blue-50/50 rounded-2xl border border-blue-200">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-blue-900">
-                    Business Photographs (Complete Listing: Exactly 2 Photos Allowed)
-                  </span>
-                  <span className="text-[11px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">
-                    2 Photos Max
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Business Photograph 1 (Storefront / Main)
-                    </label>
-                    <input
-                      type="url"
-                      name="photo1"
-                      value={formData.photo1}
-                      onChange={handleChange}
-                      placeholder="https://... (storefront photo)"
-                      className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus-ring bg-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Business Photograph 2 (Interior / Showcase)
-                    </label>
-                    <input
-                      type="url"
-                      name="photo2"
-                      value={formData.photo2}
-                      onChange={handleChange}
-                      placeholder="https://... (showcase or products)"
-                      className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus-ring bg-white"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Business Logo Image URL (Optional)
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-[#d4d4d8] mb-1">
+                    Official Business Name *
                   </label>
                   <input
-                    type="url"
-                    name="logoUrl"
-                    value={formData.logoUrl}
+                    type="text"
+                    required
+                    name="businessName"
+                    value={formData.businessName}
                     onChange={handleChange}
-                    placeholder="https://... (shop logo)"
-                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus-ring bg-white"
+                    placeholder="e.g. Mahavir Cloth Stores, Dr. Sharma Clinic"
+                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#1c1c22] text-white placeholder-[#71717a]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#d4d4d8] mb-1">
+                    Owner / Authorized Contact Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    name="ownerName"
+                    value={formData.ownerName}
+                    onChange={handleChange}
+                    placeholder="e.g. Rakesh Jain"
+                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#1c1c22] text-white placeholder-[#71717a]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#d4d4d8] mb-1">
+                    Primary Business Category *
+                  </label>
+                  <select
+                    required
+                    name="categoryId"
+                    value={formData.categoryId}
+                    onChange={handleChange}
+                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#1c1c22] text-white cursor-pointer"
+                  >
+                    {categories.map((c) => {
+                      const occupied = Math.min(10, c.businessCount || 0);
+                      const available = Math.max(0, 10 - occupied);
+                      const isFull = available === 0;
+                      return (
+                        <option key={c.id} value={c.id} disabled={isFull} className="bg-[#18181c]">
+                          {c.name} {isFull ? '(FULL — 0 of 10 slots left)' : `(${available} of 10 slots available)`}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Section 2: Contact Information */}
+            <div>
+              <h2 className="font-serif text-base font-bold text-white mb-4 pb-2 border-b border-[#24242c] flex items-center space-x-2">
+                <Phone className="w-4 h-4 text-gold-400" />
+                <span>2. Contact Details</span>
+              </h2>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-[#d4d4d8] mb-1">
+                    Calling Phone Number *
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="+91 94250 XXXXX"
+                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#1c1c22] text-white placeholder-[#71717a]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#d4d4d8] mb-1">
+                    WhatsApp Business Number
+                  </label>
+                  <input
+                    type="tel"
+                    name="whatsapp"
+                    value={formData.whatsapp}
+                    onChange={handleChange}
+                    placeholder="For direct customer messages"
+                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#1c1c22] text-white placeholder-[#71717a]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#d4d4d8] mb-1">
+                    Email Address (Optional)
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="contact@example.com"
+                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#1c1c22] text-white placeholder-[#71717a]"
                   />
                 </div>
               </div>
-            ) : (
-              <div className="space-y-3 p-4 bg-amber-50/40 rounded-2xl border border-amber-200">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-amber-900">
-                    Business Photographs (Priority Plan: Exactly 3 Photos Allowed)
-                  </span>
-                  <span className="text-[11px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">
-                    3 Photos Max
-                  </span>
+            </div>
+
+            {/* Section 3: Physical Location in Vidisha */}
+            <div>
+              <h2 className="font-serif text-base font-bold text-white mb-4 pb-2 border-b border-[#24242c] flex items-center space-x-2">
+                <MapPin className="w-4 h-4 text-gold-400" />
+                <span>3. Vidisha Location & Address</span>
+              </h2>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-[#d4d4d8] mb-1">
+                    Locality / Area in Vidisha *
+                  </label>
+                  <select
+                    name="locality"
+                    value={formData.locality}
+                    onChange={handleChange}
+                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#1c1c22] text-white cursor-pointer"
+                  >
+                    {vidishaLocalities.map((loc) => (
+                      <option key={loc} value={loc} className="bg-[#18181c]">
+                        {loc}
+                      </option>
+                    ))}
+                  </select>
                 </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-[#d4d4d8] mb-1">
+                    Complete Shop / Office Address *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    placeholder="Shop No., Market Complex, Street landmark, Vidisha"
+                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#1c1c22] text-white placeholder-[#71717a]"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Section 4: Profile Details & Timings */}
+            <div>
+              <h2 className="font-serif text-base font-bold text-white mb-4 pb-2 border-b border-[#24242c] flex items-center space-x-2">
+                <Clock className="w-4 h-4 text-gold-400" />
+                <span>4. Profile & Timings</span>
+              </h2>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-[#d4d4d8] mb-1">
+                    Business Description *
+                  </label>
+                  <textarea
+                    rows={3}
+                    required
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    placeholder="Describe your business offerings, experience, specialties, and why customers in Vidisha should visit you..."
+                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#1c1c22] text-white placeholder-[#71717a]"
+                  />
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Photograph 1 (Storefront)
+                    <label className="block text-xs font-bold text-[#d4d4d8] mb-1">
+                      Services / Products
                     </label>
                     <input
-                      type="url"
-                      name="photo1"
-                      value={formData.photo1}
+                      type="text"
+                      name="servicesInput"
+                      value={formData.servicesInput}
                       onChange={handleChange}
-                      placeholder="https://... (storefront)"
-                      className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus-ring bg-white"
+                      placeholder="e.g. Sweets, Thali, Catering"
+                      className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#1c1c22] text-white placeholder-[#71717a]"
                     />
                   </div>
+
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Photograph 2 (Showroom/Interior)
+                    <label className="block text-xs font-bold text-[#d4d4d8] mb-1">
+                      Working Hours
                     </label>
                     <input
-                      type="url"
-                      name="photo2"
-                      value={formData.photo2}
+                      type="text"
+                      name="openingHours"
+                      value={formData.openingHours}
                       onChange={handleChange}
-                      placeholder="https://... (interior display)"
-                      className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus-ring bg-white"
+                      placeholder="e.g. 09:00 AM - 08:30 PM"
+                      className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#1c1c22] text-white placeholder-[#71717a]"
                     />
                   </div>
+
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Photograph 3 (Specialty/Products)
+                    <label className="block text-xs font-bold text-[#d4d4d8] mb-1">
+                      Weekly Closing Day
                     </label>
                     <input
-                      type="url"
-                      name="photo3"
-                      value={formData.photo3}
+                      type="text"
+                      name="weeklyOff"
+                      value={formData.weeklyOff}
                       onChange={handleChange}
-                      placeholder="https://... (featured product)"
-                      className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus-ring bg-white"
+                      placeholder="e.g. Sunday or None"
+                      className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#1c1c22] text-white placeholder-[#71717a]"
                     />
                   </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Business Logo Image URL (Optional)
-                  </label>
+
+                {/* Photograph Fields conditioned on Selected Package */}
+                <div className="space-y-3 p-4 bg-[#181820] rounded-2xl border border-[#2a2a34]">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-gold-400">
+                      Business Photographs ({formData.requestedPackage === 'complete' ? 'Complete Listing: Up to 2 Photos' : 'Priority Plan: Up to 3 Photos'})
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#a1a1aa] mb-1">
+                        Photograph 1 (Storefront)
+                      </label>
+                      <input
+                        type="url"
+                        name="photo1"
+                        value={formData.photo1}
+                        onChange={handleChange}
+                        placeholder="https://... (storefront)"
+                        className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#141418] text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-[#a1a1aa] mb-1">
+                        Photograph 2 (Showroom/Interior)
+                      </label>
+                      <input
+                        type="url"
+                        name="photo2"
+                        value={formData.photo2}
+                        onChange={handleChange}
+                        placeholder="https://... (interior display)"
+                        className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#141418] text-white"
+                      />
+                    </div>
+                    {formData.requestedPackage === 'priority' && (
+                      <div>
+                        <label className="block text-xs font-semibold text-[#a1a1aa] mb-1">
+                          Photograph 3 (Specialty/Products)
+                        </label>
+                        <input
+                          type="url"
+                          name="photo3"
+                          value={formData.photo3}
+                          onChange={handleChange}
+                          placeholder="https://... (featured product)"
+                          className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#141418] text-white"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Section 5: Requested Package & Commercial Agreement */}
+            <div>
+              <h2 className="font-serif text-base font-bold text-white mb-4 pb-2 border-b border-[#24242c] flex items-center space-x-2">
+                <Tag className="w-4 h-4 text-gold-400" />
+                <span>5. Select Listing Package</span>
+              </h2>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                {/* Complete Business Listing */}
+                <label
+                  className={`p-5 rounded-3xl border cursor-pointer transition-all flex flex-col justify-between ${
+                    formData.requestedPackage === 'complete'
+                      ? 'border-gold-500 bg-[#1c1c24] shadow-md'
+                      : 'border-[#26262e] bg-[#141418] hover:border-[#383844]'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-bold text-white text-sm">Complete Listing</span>
+                      </div>
+                      <span className="text-sm font-bold text-white">₹4,000 / year</span>
+                    </div>
+                    <p className="text-xs text-[#a1a1aa] mb-4 font-light">
+                      Full details: phone, WhatsApp, address, maps, hours, description, 2 business photographs & dedicated page.
+                    </p>
+                  </div>
                   <input
-                    type="url"
-                    name="logoUrl"
-                    value={formData.logoUrl}
+                    type="radio"
+                    name="requestedPackage"
+                    value="complete"
+                    checked={formData.requestedPackage === 'complete'}
                     onChange={handleChange}
-                    placeholder="https://... (shop logo)"
-                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus-ring bg-white"
+                    className="self-start accent-gold-500"
                   />
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+                </label>
 
-        {/* Section 5: Requested Package & Commercial Agreement */}
-        <div>
-          <h2 className="text-base font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100 flex items-center space-x-2">
-            <Tag className="w-4 h-4 text-blue-600" />
-            <span>5. Select Listing Package</span>
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-            {/* Complete Business Listing */}
-            <label
-              className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
-                formData.requestedPackage === 'complete'
-                  ? 'border-blue-600 bg-blue-50/50 shadow-sm'
-                  : 'border-slate-200 hover:border-slate-300'
-              }`}
-            >
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-bold text-slate-900 text-sm">Complete Listing</span>
-                    <span className="text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full uppercase">
-                      Most Popular
-                    </span>
+                {/* Priority Business Listing */}
+                <label
+                  className={`p-5 rounded-3xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                    formData.requestedPackage === 'priority'
+                      ? 'border-gold-500 bg-[#1f1a10] shadow-[0_0_20px_rgba(212,168,49,0.2)]'
+                      : 'border-[#26262e] bg-[#141418] hover:border-[#383844]'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-bold text-white text-sm">Priority Listing</span>
+                        <span className="text-[10px] font-bold bg-gold-500/20 text-gold-400 border border-gold-500/30 px-2 py-0.5 rounded-full uppercase">
+                          Max Visibility
+                        </span>
+                      </div>
+                      <span className="text-sm font-bold text-gold-400">₹6,000 / year</span>
+                    </div>
+                    <p className="text-xs text-[#a1a1aa] mb-4 font-light">
+                      Everything in Complete + 3 business photographs, priority category visibility, premium highlighting & one month free offer promotion.
+                    </p>
                   </div>
-                  <span className="text-sm font-black text-blue-700">₹4,000 / year</span>
-                </div>
-                <p className="text-xs text-slate-500 mb-4">
-                  Full details: phone, WhatsApp, address, maps, hours, description, 2 business photographs & dedicated page.
-                </p>
+                  <input
+                    type="radio"
+                    name="requestedPackage"
+                    value="priority"
+                    checked={formData.requestedPackage === 'priority'}
+                    onChange={handleChange}
+                    className="self-start accent-gold-500"
+                  />
+                </label>
               </div>
-              <input
-                type="radio"
-                name="requestedPackage"
-                value="complete"
-                checked={formData.requestedPackage === 'complete'}
-                onChange={handleChange}
-                className="self-start text-blue-600 focus:ring-blue-500"
-              />
-            </label>
 
-            {/* Priority Business Listing */}
-            <label
-              className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
-                formData.requestedPackage === 'priority'
-                  ? 'border-amber-500 bg-amber-50/50 shadow-sm'
-                  : 'border-slate-200 hover:border-slate-300'
-              }`}
-            >
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-bold text-slate-900 text-sm">Priority Listing</span>
-                    <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full uppercase">
-                      Maximum Visibility
-                    </span>
-                  </div>
-                  <span className="text-sm font-black text-amber-700">₹6,000 / year</span>
-                </div>
-                <p className="text-xs text-slate-500 mb-4">
-                  Everything in Complete + 3 business photographs, priority category visibility, premium highlighting & one month free offer promotion.
-                </p>
+              {/* Consent Checkbox */}
+              <div className="p-4 bg-[#181820] rounded-2xl border border-[#2a2a34] mb-6">
+                <label className="flex items-start space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    required
+                    name="consentTerms"
+                    checked={formData.consentTerms}
+                    onChange={handleChange}
+                    className="mt-1 w-4 h-4 accent-gold-500 rounded"
+                  />
+                  <span className="text-xs text-[#a1a1aa] leading-relaxed font-light">
+                    I hereby declare that I am the authorized owner or representative of this business in Vidisha. I understand that submitting this form creates a <span className="font-semibold text-white">pending application</span> that will be displayed publicly only after administrative review and payment verification. I agree to the{' '}
+                    <Link to="/listing-policy" target="_blank" className="text-gold-400 underline font-semibold">
+                      Listing Policy
+                    </Link>{' '}
+                    and understand that paid placement is directory advertising and does not guarantee sales.
+                  </span>
+                </label>
               </div>
-              <input
-                type="radio"
-                name="requestedPackage"
-                value="priority"
-                checked={formData.requestedPackage === 'priority'}
-                onChange={handleChange}
-                className="self-start text-amber-600 focus:ring-amber-500"
-              />
-            </label>
-          </div>
+            </div>
 
-          {/* Consent Checkbox */}
-          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 mb-6">
-            <label className="flex items-start space-x-3 cursor-pointer">
-              <input
-                type="checkbox"
-                required
-                name="consentTerms"
-                checked={formData.consentTerms}
-                onChange={handleChange}
-                className="mt-1 w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
-              />
-              <span className="text-xs text-slate-600 leading-relaxed">
-                I hereby declare that I am the authorized owner or representative of this business in Vidisha. I understand that submitting this form creates a <span className="font-semibold text-slate-900">pending application</span> that will be displayed publicly only after administrative review and payment verification. I agree to the{' '}
-                <Link to="/listing-policy" target="_blank" className="text-blue-600 underline font-semibold">
-                  Listing Policy
-                </Link>{' '}
-                and understand that paid placement is directory advertising and does not guarantee sales.
-              </span>
-            </label>
-          </div>
-        </div>
-
-        {/* Submit Button */}
-        <div className="pt-2">
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full py-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-base shadow-lg transition-transform active:scale-95 disabled:opacity-50 flex items-center justify-center space-x-2"
-          >
-            <span>{submitting ? 'Submitting Application...' : 'Submit Listing Application'}</span>
-            <ArrowRight className="w-5 h-5" />
-          </button>
-        </div>
-      </form>
-      </>
+            {/* Submit Button */}
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full py-4 rounded-full bg-gradient-to-r from-gold-400 via-gold-500 to-gold-400 hover:from-gold-300 hover:to-gold-500 text-dark-950 font-bold text-sm shadow-[0_0_20px_rgba(212,168,49,0.35)] transition-transform active:scale-95 disabled:opacity-50 flex items-center justify-center space-x-2"
+              >
+                <span>{submitting ? 'Submitting Application...' : 'Submit Listing Application'}</span>
+                <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+              </button>
+            </div>
+          </form>
+        </>
       )}
     </div>
   );
 };
+
+export default ListBusinessPage;

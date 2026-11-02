@@ -66,13 +66,6 @@ export const BusinessCard: React.FC<BusinessCardProps> = ({ business, priorityBa
           )}
         </div>
 
-        {/* Price Range Pill */}
-        {business.priceRange && (
-          <div className="absolute top-3 right-3 px-2.5 py-0.5 bg-black/70 backdrop-blur-md rounded-full text-gold-300 text-[11px] font-medium border border-gold-500/20">
-            {business.priceRange}
-          </div>
-        )}
-
         {/* Bottom image overlay metadata (Locality, Stars, and View Details) matching screenshot */}
         <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-xs text-white z-10">
           <div className="flex items-center space-x-2">

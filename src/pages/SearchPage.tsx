@@ -141,25 +141,6 @@ export const SearchPage: React.FC = () => {
         {/* Second Filter Badges Row */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#222228] text-xs">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-semibold text-[#a1a1aa] flex items-center space-x-1">
-              <Filter className="w-3.5 h-3.5 text-gold-400" />
-              <span>Price Range:</span>
-            </span>
-
-            {['₹', '₹₹', '₹₹₹', '₹₹₹₹'].map((p) => (
-              <button
-                key={p}
-                onClick={() => setSelectedPrice(selectedPrice === p ? '' : p)}
-                className={`px-3 py-1.5 rounded-full font-bold transition-all ${
-                  selectedPrice === p
-                    ? 'bg-gradient-to-r from-gold-500 to-gold-600 text-dark-950 shadow-sm'
-                    : 'bg-[#1c1c22] text-[#d4d4d8] border border-[#2e2e38] hover:border-gold-500/40'
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-
             <button
               onClick={() => setOnlySponsored(!onlySponsored)}
               className={`px-3 py-1.5 rounded-full font-bold flex items-center space-x-1.5 transition-all ${
