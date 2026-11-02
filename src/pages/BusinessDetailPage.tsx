@@ -9,12 +9,11 @@ import {
   CheckCircle2,
   AlertTriangle,
   ChevronLeft,
-  Calendar,
   Share2,
   Tag,
-  Building2,
   Sparkles,
-  Globe
+  Globe,
+  ArrowUpRight
 } from 'lucide-react';
 import { Business, Offer } from '../types';
 import { BusinessService } from '../services/businessService';
@@ -38,19 +37,13 @@ export const BusinessDetailPage: React.FC = () => {
         setLoading(true);
         const biz = await BusinessService.getBusinessBySlug(slug);
         if (biz) {
-          // Public check: only approved listings are displayed
           if (biz.approvalStatus !== 'approved') {
             setBusiness(null);
             return;
           }
-
           setBusiness(biz);
           setSelectedPhoto(biz.coverImageUrl || biz.gallery[0] || null);
-
-          // Track view count
           BusinessService.recordInteraction(biz.id, 'view').catch(console.warn);
-
-          // Load active offers for this business
           const bizOffers = await OfferService.getOffersForBusiness(biz.id);
           setOffers(bizOffers);
         }
@@ -60,7 +53,6 @@ export const BusinessDetailPage: React.FC = () => {
         setLoading(false);
       }
     }
-
     loadBusinessData();
   }, [slug]);
 
@@ -80,15 +72,15 @@ export const BusinessDetailPage: React.FC = () => {
 
   if (!business) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <AlertTriangle className="w-12 h-12 text-slate-400 mx-auto mb-3" />
-        <h2 className="text-xl font-bold text-slate-800 mb-2">Business Profile Not Found</h2>
-        <p className="text-sm text-slate-500 mb-6">
-          This listing may have been moved, closed, or is awaiting moderation.
+      <div className="max-w-2xl mx-auto px-4 py-20 text-center">
+        <AlertTriangle className="w-14 h-14 text-gold-400 mx-auto mb-4" />
+        <h2 className="font-serif text-2xl font-bold text-forest-950 mb-2">Business Profile Not Found</h2>
+        <p className="text-sm text-charcoal-500 mb-8 font-light">
+          This listing may have been relocated, closed, or is currently awaiting moderation.
         </p>
         <Link
           to="/"
-          className="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl text-sm"
+          className="px-8 py-3 bg-forest-900 text-gold-300 font-semibold rounded-xl text-sm border border-gold-500/30 hover:bg-forest-950 transition-colors"
         >
           Return to Home
         </Link>
@@ -103,7 +95,7 @@ export const BusinessDetailPage: React.FC = () => {
     if (navigator.share) {
       navigator.share({
         title: `${business.name} — Vidisha City`,
-        text: `Check out ${business.name} on Vidisha City Directory!`,
+        text: `Discover ${business.name} on Vidisha City Directory!`,
         url: window.location.href,
       }).catch(() => {});
     } else {
@@ -113,56 +105,58 @@ export const BusinessDetailPage: React.FC = () => {
     }
   };
 
-  const handleAction = (type: 'phone' | 'whatsapp') => {
+  const handleAction = (_type: 'phone' | 'whatsapp') => {
     BusinessService.recordInteraction(business.id, 'click').catch(console.warn);
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
       {/* Navigation Breadcrumb */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-5">
         <Link
           to={`/category/${business.categorySlug}`}
-          className="inline-flex items-center space-x-1 text-xs font-bold text-slate-600 hover:text-blue-600"
+          className="inline-flex items-center space-x-1 text-xs font-semibold text-charcoal-600 hover:text-forest-900 transition-colors group"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-4 h-4 text-gold-600 group-hover:-translate-x-0.5 transition-transform" />
           <span>Back to {business.categoryName}</span>
         </Link>
 
         <button
           onClick={handleShare}
-          className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 shadow-sm"
+          className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-charcoal-700 bg-white border border-ivory-300 hover:border-gold-400/50 hover:bg-ivory-100 shadow-sm transition-all"
         >
-          <Share2 className="w-3.5 h-3.5" />
+          <Share2 className="w-3.5 h-3.5 text-gold-600" />
           <span>{copiedLink ? 'Link Copied!' : 'Share'}</span>
         </button>
       </div>
 
       {/* Main Cover & Gallery Section */}
-      <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm mb-8">
-        <div className="relative h-64 sm:h-96 w-full bg-slate-900">
+      <div className="bg-white rounded-3xl border border-ivory-300 overflow-hidden shadow-[0_8px_32px_-6px_rgba(20,41,30,0.1)] mb-8">
+        <div className="relative h-64 sm:h-96 w-full bg-forest-950">
           <img
             src={selectedPhoto || business.coverImageUrl || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&auto=format&fit=crop&q=80'}
             alt={business.name}
             className="w-full h-full object-cover transition-opacity duration-300"
           />
+          {/* Ambient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-charcoal-950/60 via-transparent to-transparent" />
 
           {/* Badges Overlay */}
-          <div className="absolute top-4 left-4 flex flex-wrap gap-2 items-center">
+          <div className="absolute top-4 left-4 flex flex-wrap gap-2 items-center z-10">
             {business.packageId === 'priority' && business.paymentStatus === 'paid' && (
-              <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-md text-xs font-bold bg-amber-500 text-slate-950 uppercase tracking-wider shadow">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Priority Listing</span>
+              <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold bg-forest-950/90 text-gold-300 border border-gold-400/40 uppercase tracking-wider backdrop-blur-md shadow-lg">
+                <Sparkles className="w-3.5 h-3.5 text-gold-400" />
+                <span>Priority Selection</span>
               </span>
             )}
-            <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-600 text-white shadow">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Verified Merchant</span>
+            <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold bg-forest-800/90 text-ivory-100 border border-forest-600/50 backdrop-blur-md shadow-md">
+              <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
+              <span>Verified Establishment</span>
             </span>
           </div>
 
           {business.priceRange && (
-            <div className="absolute bottom-4 right-4 px-3 py-1 bg-black/70 backdrop-blur-md rounded-lg text-white text-xs font-bold">
+            <div className="absolute bottom-4 right-4 px-3 py-1 bg-forest-950/85 backdrop-blur-md rounded-full text-gold-200 text-xs font-medium border border-gold-500/20 shadow">
               Pricing: {business.priceRange}
             </div>
           )}
@@ -170,13 +164,15 @@ export const BusinessDetailPage: React.FC = () => {
 
         {/* Thumbnail Gallery Row */}
         {business.gallery && business.gallery.length > 1 && (
-          <div className="p-3 bg-slate-100 flex items-center space-x-3 overflow-x-auto">
+          <div className="p-3 bg-ivory-100 flex items-center space-x-3 overflow-x-auto border-b border-ivory-200">
             {business.gallery.map((photo, index) => (
               <button
                 key={index}
                 onClick={() => setSelectedPhoto(photo)}
                 className={`relative w-20 h-16 rounded-xl overflow-hidden shrink-0 border-2 transition-all ${
-                  selectedPhoto === photo ? 'border-blue-600 scale-105' : 'border-transparent opacity-75 hover:opacity-100'
+                  selectedPhoto === photo
+                    ? 'border-gold-500 scale-105 shadow-md'
+                    : 'border-transparent opacity-70 hover:opacity-100 hover:border-ivory-400'
                 }`}
               >
                 <img src={photo} alt="" className="w-full h-full object-cover" />
@@ -189,26 +185,27 @@ export const BusinessDetailPage: React.FC = () => {
         <div className="p-6 sm:p-8">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
             <div className="flex-1">
-              <div className="flex items-center space-x-2 text-xs font-bold text-blue-600 mb-1">
+              <div className="flex items-center space-x-2 text-xs font-bold text-gold-700 mb-1 uppercase tracking-wider">
                 <span>{business.categoryName}</span>
                 {business.subcategory && (
                   <>
-                    <span>•</span>
-                    <span className="text-slate-500">{business.subcategory}</span>
+                    <span className="text-charcoal-300">•</span>
+                    <span className="text-charcoal-500 font-medium">{business.subcategory}</span>
                   </>
                 )}
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mb-2">
+              <h1 className="font-serif text-2xl sm:text-3xl font-bold text-forest-950 tracking-tight mb-2">
                 {business.name}
               </h1>
-              <p className="text-sm text-slate-600 flex items-center space-x-1.5 mb-4">
-                <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
+              <p className="text-sm text-charcoal-600 flex items-center space-x-1.5 mb-3 font-light">
+                <MapPin className="w-4 h-4 text-forest-600 shrink-0" />
                 <span>{business.address}, {business.locality}, Vidisha, MP</span>
               </p>
 
               {business.lastVerifiedAt && (
-                <div className="text-xs text-slate-400">
-                  Last verified by Vidisha City Admin: {business.lastVerifiedAt}
+                <div className="text-xs text-charcoal-400 flex items-center space-x-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-forest-600" />
+                  <span>Verified by Vidisha City Admin: {business.lastVerifiedAt}</span>
                 </div>
               )}
             </div>
@@ -219,22 +216,22 @@ export const BusinessDetailPage: React.FC = () => {
                 <a
                   href={`tel:${cleanPhone}`}
                   onClick={() => handleAction('phone')}
-                  className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md flex items-center justify-center space-x-2 transition-transform active:scale-95"
+                  className="px-6 py-3 rounded-xl bg-forest-900 hover:bg-forest-950 text-gold-300 hover:text-gold-200 font-semibold text-sm border border-gold-500/30 shadow-md flex items-center justify-center space-x-2 transition-all active:scale-95"
                 >
-                  <Phone className="w-4 h-4" />
+                  <Phone className="w-4 h-4 text-gold-400" />
                   <span>Call {business.phone}</span>
                 </a>
               )}
 
               {business.whatsapp && (
                 <a
-                  href={`https://wa.me/${cleanWhatsApp}?text=${encodeURIComponent(`Hello ${business.name}, I am contacting you via Vidisha City Directory.`)}`}
+                  href={`https://wa.me/${cleanWhatsApp}?text=${encodeURIComponent(`Hello ${business.name}, I am reaching out via Vidisha City Directory.`)}`}
                   target="_blank"
                   rel="noreferrer"
                   onClick={() => handleAction('whatsapp')}
-                  className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md flex items-center justify-center space-x-2 transition-transform active:scale-95"
+                  className="px-6 py-3 rounded-xl bg-white border border-forest-800 text-forest-900 hover:bg-forest-50 font-semibold text-sm shadow-sm flex items-center justify-center space-x-2 transition-all active:scale-95"
                 >
-                  <MessageSquare className="w-4 h-4" />
+                  <MessageSquare className="w-4 h-4 text-forest-700" />
                   <span>WhatsApp Inquiry</span>
                 </a>
               )}
@@ -246,27 +243,27 @@ export const BusinessDetailPage: React.FC = () => {
       {/* Grid: Details & Side Info */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Column */}
-        <div className="lg:col-span-2 space-y-8">
+        <div className="lg:col-span-2 space-y-6">
           {/* About Section */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
-            <h2 className="text-lg font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100">
-              About {business.name}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-ivory-300 shadow-[0_4px_20px_-4px_rgba(20,41,30,0.06)]">
+            <h2 className="font-serif text-lg font-bold text-forest-950 mb-4 pb-3 border-b border-ivory-200 flex items-center space-x-2">
+              <span>About {business.name}</span>
             </h2>
-            <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+            <p className="text-sm text-charcoal-700 leading-relaxed whitespace-pre-line font-light">
               {business.description}
             </p>
 
             {/* Services & Specialties */}
             {business.services && business.services.length > 0 && (
-              <div className="mt-6 pt-6 border-t border-slate-100">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
+              <div className="mt-6 pt-6 border-t border-ivory-200">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-charcoal-400 mb-3">
                   Services & Specialties
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {business.services.map((srv, idx) => (
                     <span
                       key={idx}
-                      className="px-3 py-1.5 rounded-xl bg-blue-50 text-blue-800 text-xs font-semibold border border-blue-100"
+                      className="px-3 py-1.5 rounded-full bg-forest-50 text-forest-900 text-xs font-medium border border-forest-200/80 hover:bg-forest-100 transition-colors"
                     >
                       {srv}
                     </span>
@@ -276,23 +273,23 @@ export const BusinessDetailPage: React.FC = () => {
             )}
           </div>
 
-          {/* Product Catalog / Menu if available */}
+          {/* Product Catalog / Menu */}
           {business.catalog && business.catalog.length > 0 && (
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
-              <h2 className="text-lg font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100">
-                Popular Items & Pricing
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-ivory-300 shadow-[0_4px_20px_-4px_rgba(20,41,30,0.06)]">
+              <h2 className="font-serif text-lg font-bold text-forest-950 mb-4 pb-3 border-b border-ivory-200">
+                Featured Items & Pricing
               </h2>
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-ivory-200">
                 {business.catalog.map((item, idx) => (
-                  <div key={idx} className="py-3 flex items-start justify-between">
+                  <div key={idx} className="py-3.5 flex items-start justify-between">
                     <div>
-                      <h4 className="text-sm font-bold text-slate-800">{item.name}</h4>
+                      <h4 className="text-sm font-semibold text-charcoal-900">{item.name}</h4>
                       {item.description && (
-                        <p className="text-xs text-slate-500 mt-0.5">{item.description}</p>
+                        <p className="text-xs text-charcoal-500 mt-0.5 font-light">{item.description}</p>
                       )}
                     </div>
                     {item.price !== undefined && (
-                      <span className="text-sm font-bold text-blue-700 ml-4">
+                      <span className="text-sm font-bold text-forest-900 ml-4">
                         ₹{item.price}
                       </span>
                     )}
@@ -304,11 +301,11 @@ export const BusinessDetailPage: React.FC = () => {
 
           {/* Active Offers from this business */}
           {offers.length > 0 && (
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
-              <div className="flex items-center space-x-2 mb-4 pb-2 border-b border-slate-100">
-                <Tag className="w-5 h-5 text-amber-500" />
-                <h2 className="text-lg font-bold text-slate-900">
-                  Active Offers & Discounts
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-ivory-300 shadow-[0_4px_20px_-4px_rgba(20,41,30,0.06)]">
+              <div className="flex items-center space-x-2.5 mb-4 pb-3 border-b border-ivory-200">
+                <Tag className="w-5 h-5 text-gold-600" />
+                <h2 className="font-serif text-lg font-bold text-forest-950">
+                  Exclusive Offers & Promotions
                 </h2>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -321,24 +318,24 @@ export const BusinessDetailPage: React.FC = () => {
         </div>
 
         {/* Sidebar Info Column */}
-        <div className="space-y-6">
+        <div className="space-y-5">
           {/* Timings & Opening Hours Card */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
-            <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center space-x-2">
-              <Clock className="w-4 h-4 text-blue-600" />
+          <div className="bg-white rounded-3xl p-6 border border-ivory-300 shadow-[0_4px_20px_-4px_rgba(20,41,30,0.06)]">
+            <h3 className="font-serif text-base font-bold text-forest-950 mb-4 flex items-center space-x-2">
+              <Clock className="w-4 h-4 text-gold-600" />
               <span>Business Hours</span>
             </h3>
 
-            <div className="space-y-2 text-sm text-slate-700 mb-4">
-              <div className="flex justify-between items-center py-1">
-                <span className="text-slate-500 text-xs font-medium">Opening Hours:</span>
-                <span className="font-semibold text-xs text-slate-900">
-                  {typeof business.openingHours === 'string' ? business.openingHours : '09:00 AM - 08:30 PM'}
+            <div className="space-y-2.5 text-sm text-charcoal-700">
+              <div className="flex justify-between items-center py-1.5 border-b border-ivory-100">
+                <span className="text-charcoal-500 text-xs font-medium">Opening Hours</span>
+                <span className="font-semibold text-xs text-charcoal-900">
+                  {typeof business.openingHours === 'string' ? business.openingHours : '09:00 AM – 08:30 PM'}
                 </span>
               </div>
-              <div className="flex justify-between items-center py-1 border-t border-slate-100">
-                <span className="text-slate-500 text-xs font-medium">Weekly Off:</span>
-                <span className="font-semibold text-xs text-amber-700">
+              <div className="flex justify-between items-center py-1.5">
+                <span className="text-charcoal-500 text-xs font-medium">Weekly Off</span>
+                <span className="font-semibold text-xs text-gold-700">
                   {business.weeklyOff || 'Open all 7 days'}
                 </span>
               </div>
@@ -346,13 +343,13 @@ export const BusinessDetailPage: React.FC = () => {
           </div>
 
           {/* Location & Directions Card */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
-            <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center space-x-2">
-              <MapPin className="w-4 h-4 text-blue-600" />
+          <div className="bg-white rounded-3xl p-6 border border-ivory-300 shadow-[0_4px_20px_-4px_rgba(20,41,30,0.06)]">
+            <h3 className="font-serif text-base font-bold text-forest-950 mb-3 flex items-center space-x-2">
+              <MapPin className="w-4 h-4 text-gold-600" />
               <span>Location & Map</span>
             </h3>
 
-            <p className="text-xs text-slate-600 mb-4 leading-relaxed">
+            <p className="text-xs text-charcoal-600 mb-4 leading-relaxed font-light">
               {business.address}, {business.locality}, Vidisha, Madhya Pradesh.
             </p>
 
@@ -360,25 +357,25 @@ export const BusinessDetailPage: React.FC = () => {
               href={business.mapUrl || `https://maps.google.com/?q=${encodeURIComponent(`${business.name} ${business.locality} Vidisha`)}`}
               target="_blank"
               rel="noreferrer"
-              className="w-full py-2.5 px-4 rounded-xl bg-blue-50 text-blue-700 font-bold text-xs hover:bg-blue-100 flex items-center justify-center space-x-2 transition-colors border border-blue-200"
+              className="w-full py-2.5 px-4 rounded-xl bg-forest-50 hover:bg-forest-100 text-forest-900 font-semibold text-xs flex items-center justify-center space-x-2 transition-colors border border-forest-200"
             >
-              <ExternalLink className="w-3.5 h-3.5" />
+              <ExternalLink className="w-3.5 h-3.5 text-gold-600" />
               <span>Open in Google Maps</span>
             </a>
           </div>
 
-          {/* Website & Social Links if available */}
+          {/* Website */}
           {business.websiteUrl && (
-            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
-              <h3 className="text-base font-bold text-slate-900 mb-3 flex items-center space-x-2">
-                <Globe className="w-4 h-4 text-blue-600" />
+            <div className="bg-white rounded-3xl p-6 border border-ivory-300 shadow-[0_4px_20px_-4px_rgba(20,41,30,0.06)]">
+              <h3 className="font-serif text-base font-bold text-forest-950 mb-3 flex items-center space-x-2">
+                <Globe className="w-4 h-4 text-gold-600" />
                 <span>Official Website</span>
               </h3>
               <a
                 href={business.websiteUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="text-xs font-semibold text-blue-600 hover:underline truncate block"
+                className="text-xs font-semibold text-forest-800 hover:text-gold-700 hover:underline truncate block transition-colors"
               >
                 {business.websiteUrl}
               </a>
@@ -386,13 +383,13 @@ export const BusinessDetailPage: React.FC = () => {
           )}
 
           {/* Report Incorrect Info Button */}
-          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-center">
-            <p className="text-xs text-slate-500 mb-2">
+          <div className="p-4 bg-ivory-100 rounded-2xl border border-ivory-300 text-center">
+            <p className="text-xs text-charcoal-500 mb-2 font-light">
               Is something incorrect or outdated with this profile?
             </p>
             <button
               onClick={() => setReportModalOpen(true)}
-              className="text-xs font-bold text-slate-600 hover:text-red-600 inline-flex items-center space-x-1"
+              className="text-xs font-semibold text-charcoal-600 hover:text-rose-700 inline-flex items-center space-x-1.5 transition-colors"
             >
               <AlertTriangle className="w-3.5 h-3.5" />
               <span>Report Incorrect Information</span>

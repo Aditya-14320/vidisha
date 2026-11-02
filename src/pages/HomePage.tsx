@@ -1,18 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Grid,
   Tag,
-  Sparkles,
-  TrendingUp,
   Clock,
   ArrowRight,
-  ShieldCheck,
-  CheckCircle2,
-  Building2,
-  Users,
-  Search,
-  MessageSquare
+  TrendingUp,
+  Star
 } from 'lucide-react';
 import { Category, Business, Offer } from '../types';
 import { CategoryService } from '../services/categoryService';
@@ -64,41 +57,95 @@ export const HomePage: React.FC = () => {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-3 sm:py-6">
-      {/* Top Search Hero Banner */}
+    <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6">
+      {/* Top Search Hero Banner matching reference screenshot */}
       <SearchBanner categories={categories} />
 
-      {/* Top Homepage Hero Banner Placement */}
-      <BannerDisplay placement="homepage_hero" className="my-4 sm:my-6" />
+      {/* Featured Establishments section matching reference screenshot */}
+      <section className="mb-10 sm:mb-14 bg-[#141417] rounded-3xl p-5 sm:p-7 border border-[#2a2a30] shadow-[0_10px_35px_rgba(0,0,0,0.7)]">
+        <div className="flex items-center justify-between mb-5 pb-3 border-b border-[#24242a]">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-gold-500 to-gold-600 text-dark-950 flex items-center justify-center font-bold shrink-0 shadow-md">
+              <Star className="w-5 h-5 fill-dark-950 text-dark-950" />
+            </div>
+            <div>
+              <div className="flex items-center space-x-2">
+                <h2 className="font-serif text-lg sm:text-2xl font-bold text-white tracking-tight">
+                  Featured Establishments
+                </h2>
+              </div>
+              <p className="text-xs text-[#a1a1aa] font-light">
+                Promoted listings by verified merchants in Vidisha
+              </p>
+            </div>
+          </div>
+          <span className="text-[10px] font-bold bg-[#1d1d24] text-gold-400 px-3 py-1 rounded-full uppercase tracking-wider border border-gold-500/30">
+            Sponsored
+          </span>
+        </div>
 
-      {/* Categories Grid (First 8 most popular + View All) - Hidden on mobile, accessible via Bottom Nav & /categories */}
+        {/* Featured Business Cards */}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <BusinessCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : featuredSponsored.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {featuredSponsored.map((biz) => (
+              <BusinessCard key={biz.id} business={biz} priorityBadge="Priority Listing" />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-10 text-[#a1a1aa] text-sm">
+            Featured listings will appear here.
+          </div>
+        )}
+
+        {/* Carousel Dots indicator matching screenshot */}
+        <div className="flex items-center justify-center space-x-2 mt-6">
+          <span className="w-2.5 h-2.5 rounded-full bg-gold-400" />
+          <span className="w-2 h-2 rounded-full bg-[#3f3f46]" />
+          <span className="w-2 h-2 rounded-full bg-[#3f3f46]" />
+          <span className="w-2 h-2 rounded-full bg-[#3f3f46]" />
+        </div>
+      </section>
+
+      {/* Top Homepage Hero Banner Placement */}
+      <BannerDisplay placement="homepage_hero" className="my-5 sm:my-8" />
+
+      {/* Categories Grid */}
       <section className="hidden md:block mb-12">
-        <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <div className="flex items-end justify-between mb-5 pb-3 border-b border-[#24242a]">
           <div>
-            <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
+            <div className="text-gold-400 text-xs font-semibold uppercase tracking-wider mb-1">
+              Curated Sectors
+            </div>
+            <h2 className="font-serif text-2xl font-bold text-white tracking-tight">
               Explore by Category
             </h2>
-            <p className="text-[11px] sm:text-sm text-slate-500">
+            <p className="text-xs text-[#a1a1aa] font-light mt-0.5">
               Browse top verified business sectors across Vidisha
             </p>
           </div>
           <Link
             to="/categories"
-            className="inline-flex items-center space-x-1 text-xs sm:text-sm font-bold text-blue-600 hover:text-blue-700 shrink-0"
+            className="inline-flex items-center space-x-1.5 text-xs sm:text-sm font-semibold text-gold-400 hover:text-gold-300 transition-colors group shrink-0"
           >
-            <span>All 20 Categories</span>
-            <ArrowRight className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
+            <span>All Categories</span>
+            <ArrowRight className="w-3.5 sm:w-4 h-3.5 sm:h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 sm:gap-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <CategoryCardSkeleton key={i} />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 sm:gap-4">
             {categories.slice(0, 8).map((cat) => (
               <CategoryCard key={cat.id} category={cat} compact />
             ))}
@@ -106,65 +153,34 @@ export const HomePage: React.FC = () => {
         )}
       </section>
 
-      {/* Featured Sponsored Businesses (Clearly Labelled) */}
-      {featuredSponsored.length > 0 && (
-        <section className="mb-7 sm:mb-12 bg-gradient-to-br from-amber-50/50 via-white to-blue-50/30 p-4 sm:p-8 rounded-2xl sm:rounded-3xl border border-amber-200/60 shadow-sm">
-          <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <div className="flex items-center space-x-2.5">
-              <div className="w-8 sm:w-9 h-8 sm:h-9 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-bold shrink-0">
-                <Sparkles className="w-4 sm:w-5 h-4 sm:h-5 fill-current" />
-              </div>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <h2 className="text-base sm:text-xl font-black text-slate-900 tracking-tight">
-                    Featured Businesses
-                  </h2>
-                  <span className="text-[9px] sm:text-[10px] font-bold bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded uppercase">
-                    Sponsored
-                  </span>
-                </div>
-                <p className="text-[11px] sm:text-xs text-slate-500">
-                  Promoted listings by verified merchants in Vidisha
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-            {featuredSponsored.map((biz) => (
-              <BusinessCard key={biz.id} business={biz} />
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* Today's Offers & Deals */}
       {offers.length > 0 && (
-        <section className="mb-7 sm:mb-12">
-          <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <div className="flex items-center space-x-2">
-              <div className="w-7 sm:w-8 h-7 sm:h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-                <Tag className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
+        <section className="mb-10 sm:mb-14">
+          <div className="flex items-end justify-between mb-5 pb-3 border-b border-[#24242a]">
+            <div className="flex items-center space-x-3">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#1a1a20] text-gold-400 flex items-center justify-center shrink-0 border border-gold-500/30">
+                <Tag className="w-4 sm:w-5 h-4 sm:h-5 text-gold-400" />
               </div>
               <div>
-                <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
-                  Today's Offers & Deals
+                <div className="text-[11px] font-semibold text-gold-400 uppercase tracking-wider">Limited Privileges</div>
+                <h2 className="font-serif text-xl sm:text-3xl font-bold text-white tracking-tight">
+                  Exclusive In-Store Offers
                 </h2>
-                <p className="text-[11px] sm:text-sm text-slate-500">
-                  Active discounts directly from Vidisha stores and dining spots
+                <p className="text-xs text-[#a1a1aa] font-light">
+                  Active discounts published directly by participating Vidisha merchants
                 </p>
               </div>
             </div>
             <Link
               to="/offers"
-              className="inline-flex items-center space-x-1 text-xs sm:text-sm font-bold text-blue-600 hover:text-blue-700 shrink-0"
+              className="inline-flex items-center space-x-1.5 text-xs sm:text-sm font-semibold text-gold-400 hover:text-gold-300 transition-colors group shrink-0"
             >
-              <span>View All</span>
-              <ArrowRight className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
+              <span>View All Offers</span>
+              <ArrowRight className="w-3.5 sm:w-4 h-3.5 sm:h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-6">
             {offers.slice(0, 3).map((offer) => (
               <OfferCard key={offer.id} offer={offer} />
             ))}
@@ -174,31 +190,31 @@ export const HomePage: React.FC = () => {
 
       {/* Top 10 in Restaurants & Cafes Section */}
       {topRestaurants.length > 0 && (
-        <section className="mb-7 sm:mb-12">
-          <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <section className="mb-10 sm:mb-14">
+          <div className="flex items-end justify-between mb-5 pb-3 border-b border-[#24242a]">
             <div>
-              <div className="flex items-center space-x-2">
-                <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
-                  Top 10 in Restaurants & Cafes
-                </h2>
-                <span className="text-[10px] sm:text-[11px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
-                  Top 10
+              <div className="flex items-center space-x-2 mb-0.5">
+                <span className="text-[10px] font-bold bg-[#1a1a22] text-gold-400 px-2.5 py-0.5 rounded-full uppercase tracking-wider border border-gold-500/30">
+                  Hallmark Selection
                 </span>
               </div>
-              <p className="text-[11px] sm:text-sm text-slate-500">
+              <h2 className="font-serif text-xl sm:text-3xl font-bold text-white tracking-tight">
+                Top 10 in Restaurants & Cafes
+              </h2>
+              <p className="text-xs text-[#a1a1aa] font-light">
                 Curated dining and sweet destinations in Vidisha
               </p>
             </div>
             <Link
               to="/category/restaurants-and-cafes"
-              className="text-xs sm:text-sm font-bold text-blue-600 hover:text-blue-700 inline-flex items-center space-x-1 shrink-0"
+              className="text-xs sm:text-sm font-semibold text-gold-400 hover:text-gold-300 inline-flex items-center space-x-1.5 group shrink-0"
             >
-              <span>Explore</span>
-              <ArrowRight className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
+              <span>Explore Category</span>
+              <ArrowRight className="w-3.5 sm:w-4 h-3.5 sm:h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
             {topRestaurants.map((biz) => (
               <BusinessCard key={biz.id} business={biz} />
             ))}
@@ -207,35 +223,36 @@ export const HomePage: React.FC = () => {
       )}
 
       {/* Mid-page Homepage Banner Placement */}
-      <BannerDisplay placement="homepage_mid" className="my-6 sm:my-8" />
+      <BannerDisplay placement="homepage_mid" className="my-8 sm:my-12" />
 
-      {/* Popular Businesses based on real interaction counts */}
+      {/* Popular Businesses */}
       {popularBusinesses.length > 0 && (
-        <section className="mb-7 sm:mb-12">
-          <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <div className="flex items-center space-x-2">
-              <div className="w-7 sm:w-8 h-7 sm:h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                <TrendingUp className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
+        <section className="mb-10 sm:mb-14">
+          <div className="flex items-end justify-between mb-5 pb-3 border-b border-[#24242a]">
+            <div className="flex items-center space-x-3">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#1c1c22] text-gold-400 flex items-center justify-center shrink-0 border border-gold-500/30">
+                <TrendingUp className="w-4 sm:w-5 h-4 sm:h-5 text-gold-400" />
               </div>
               <div>
-                <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
+                <div className="text-[11px] font-semibold text-gold-400 uppercase tracking-wider">High Engagement</div>
+                <h2 className="font-serif text-xl sm:text-3xl font-bold text-white tracking-tight">
                   Frequently Visited Businesses
                 </h2>
-                <p className="text-[11px] sm:text-sm text-slate-500">
-                  Based on actual interaction volume and visitor views
+                <p className="text-xs text-[#a1a1aa] font-light">
+                  Ranked by actual interaction volume, inquiries, and customer views
                 </p>
               </div>
             </div>
             <Link
               to="/search"
-              className="text-xs sm:text-sm font-bold text-blue-600 hover:text-blue-700 inline-flex items-center space-x-1 shrink-0"
+              className="text-xs sm:text-sm font-semibold text-gold-400 hover:text-gold-300 inline-flex items-center space-x-1.5 group shrink-0"
             >
               <span>View All</span>
-              <ArrowRight className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
+              <ArrowRight className="w-3.5 sm:w-4 h-3.5 sm:h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
             {popularBusinesses.map((biz) => (
               <BusinessCard key={biz.id} business={biz} />
             ))}
@@ -245,108 +262,55 @@ export const HomePage: React.FC = () => {
 
       {/* Recently Added */}
       {recentBusinesses.length > 0 && (
-        <section className="mb-7 sm:mb-12">
-          <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <div className="flex items-center space-x-2">
-              <div className="w-7 sm:w-8 h-7 sm:h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
-                <Clock className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
+        <section className="mb-10 sm:mb-14">
+          <div className="flex items-center justify-between mb-5 pb-3 border-b border-[#24242a]">
+            <div className="flex items-center space-x-3">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#1c1c22] text-gold-400 flex items-center justify-center shrink-0 border border-gold-500/30">
+                <Clock className="w-4 sm:w-5 h-4 sm:h-5 text-gold-400" />
               </div>
               <div>
-                <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
-                  Recently Added to Directory
+                <h2 className="font-serif text-xl sm:text-3xl font-bold text-white tracking-tight">
+                  Newly Verified Establishments
                 </h2>
-                <p className="text-[11px] sm:text-sm text-slate-500">
-                  Newly verified establishments in Vidisha
+                <p className="text-xs text-[#a1a1aa] font-light">
+                  Recent additions meeting Vidisha City verification standards
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {recentBusinesses.map((biz) => (
-              <BusinessCard key={biz.id} business={biz} priorityBadge="New" />
+              <BusinessCard key={biz.id} business={biz} priorityBadge="New Addition" />
             ))}
           </div>
         </section>
       )}
 
-      {/* How It Works Section */}
-      <section className="mb-7 sm:mb-12 bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-10 border border-slate-200/90 shadow-sm">
-        <div className="text-center max-w-xl mx-auto mb-6 sm:mb-10">
-          <span className="text-[11px] sm:text-xs font-bold text-blue-600 uppercase tracking-wider">
-            Simple & Transparent
-          </span>
-          <h2 className="text-xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
-            How Vidisha City Works
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1.5 sm:mt-2">
-            Connecting local consumers directly with neighborhood business owners without middlemen or hidden commission fees.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-8">
-          <div className="text-center p-3 sm:p-4">
-            <div className="w-12 sm:w-14 h-12 sm:h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3 sm:mb-4 font-black text-base sm:text-lg">
-              1
-            </div>
-            <h3 className="font-bold text-sm sm:text-base text-slate-900 mb-1">
-              Search & Discover
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
-              Find verified shops, doctors, tutors, and services filtered by locality such as Station Road, Durga Nagar, or Khariphatak.
-            </p>
-          </div>
-
-          <div className="text-center p-3 sm:p-4">
-            <div className="w-12 sm:w-14 h-12 sm:h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3 sm:mb-4 font-black text-base sm:text-lg">
-              2
-            </div>
-            <h3 className="font-bold text-sm sm:text-base text-slate-900 mb-1">
-              Direct Contact
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
-              Call or message the business owner directly on WhatsApp with one click. Get directions right to their door.
-            </p>
-          </div>
-
-          <div className="text-center p-3 sm:p-4">
-            <div className="w-12 sm:w-14 h-12 sm:h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-3 sm:mb-4 font-black text-base sm:text-lg">
-              3
-            </div>
-            <h3 className="font-bold text-sm sm:text-base text-slate-900 mb-1">
-              Save with Local Offers
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
-              Unlock exclusive festival deals and coupons published directly by participating merchants.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA: List Your Business Banner */}
-      <section className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 text-white rounded-2xl sm:rounded-3xl p-6 sm:p-12 shadow-xl relative overflow-hidden">
+      {/* CTA: List Your Business Dark Luxury Banner */}
+      <section className="bg-gradient-to-r from-[#141418] via-[#1a1a22] to-[#121215] text-white rounded-3xl p-7 sm:p-12 shadow-2xl relative overflow-hidden border border-gold-500/30 mb-8">
         <div className="relative z-10 max-w-2xl">
-          <span className="inline-block px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-blue-500/40 text-blue-100 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-2 sm:mb-3">
+          <span className="inline-block px-3 py-1 rounded-full bg-[#22222a] text-gold-400 border border-gold-500/30 text-[10px] sm:text-xs font-semibold uppercase tracking-widest mb-3">
             For Local Storefronts & Professionals
           </span>
-          <h2 className="text-xl sm:text-4xl font-black tracking-tight text-white mb-2 sm:mb-3">
-            Are You a Business Owner in Vidisha?
+          <h2 className="font-serif text-2xl sm:text-4xl font-bold tracking-tight text-white mb-3">
+            Elevate Your Business Presence in Vidisha
           </h2>
-          <p className="text-xs sm:text-base text-blue-100 mb-5 sm:mb-6 leading-relaxed">
-            Reach thousands of Vidisha citizens looking for your services daily. Submit your listing application today for administrative verification.
+          <p className="text-xs sm:text-base text-[#d4d4d8] mb-6 sm:mb-8 leading-relaxed font-light">
+            Connect with thousands of local patrons seeking verified products and services daily. Register your establishment for administrative verification.
           </p>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <Link
               to="/list-your-business"
-              className="px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl bg-white text-blue-700 font-bold text-xs sm:text-sm hover:bg-blue-50 shadow-md text-center transition-transform active:scale-95"
+              className="px-6 py-3.5 rounded-full bg-gradient-to-r from-gold-400 via-gold-500 to-gold-400 hover:from-gold-300 hover:to-gold-500 text-dark-950 font-bold text-xs sm:text-sm shadow-[0_0_20px_rgba(212,168,49,0.3)] text-center transition-all duration-200 transform active:scale-95"
             >
               List Your Business Now
             </Link>
             <Link
               to="/pricing"
-              className="px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl bg-blue-800/80 hover:bg-blue-800 text-white border border-blue-400/40 font-bold text-xs sm:text-sm text-center transition-colors"
+              className="px-6 py-3.5 rounded-full bg-[#18181e] hover:bg-[#22222a] text-white border border-[#33333c] hover:border-gold-500/40 font-semibold text-xs sm:text-sm text-center transition-colors"
             >
-              View Listing Packages
+              View Placement Plans
             </Link>
           </div>
         </div>

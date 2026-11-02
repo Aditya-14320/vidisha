@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, MapPin, Grid, ArrowRight, X } from 'lucide-react';
+import {
+  Search,
+  MapPin,
+  ArrowRight,
+  X,
+  LayoutGrid,
+  ChevronDown
+} from 'lucide-react';
 import { Business, Category } from '../../types';
 import { StorageService } from '../../services/storageService';
 
@@ -81,147 +88,189 @@ export const SearchBanner: React.FC<SearchBannerProps> = ({ categories }) => {
     navigate(`/business/${biz.slug}`);
   };
 
+  const topSearches = [
+    { label: 'Station Road', icon: '🏛️' },
+    { label: 'Sweets & Namkeen', icon: '🎁' },
+    { label: 'Chanderi Sarees', icon: '👗' },
+    { label: 'Mobile Repair', icon: '📱' },
+    { label: 'Dentists', icon: '🦷' }
+  ];
+
   return (
-    <div className="relative bg-gradient-to-b from-blue-700 via-blue-800 to-blue-900 text-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 md:p-10 shadow-xl overflow-hidden mb-6 sm:mb-10">
-      {/* Background architectural graphics */}
-      <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
-      <div className="absolute -top-24 -right-24 w-80 h-80 bg-blue-500 rounded-full blur-3xl opacity-20 pointer-events-none" />
+    <div className="relative w-full overflow-hidden mb-8 sm:mb-12">
+      {/* Hero Section Container matching reference screenshot */}
+      <div className="relative min-h-[460px] sm:min-h-[520px] rounded-3xl overflow-hidden p-6 sm:p-10 md:p-12 border border-[#2a2416] shadow-2xl flex flex-col justify-between">
+        
+        {/* Background Image of Ancient Indian Carved Temple with warm sunset lighting */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 scale-105"
+          style={{
+            backgroundImage: `url('https://images.unsplash.com/photo-1548013146-72479768bada?w=1600&auto=format&fit=crop&q=85')`
+          }}
+        />
 
-      <div className="relative z-10 max-w-3xl mx-auto text-center mb-4 sm:mb-8">
-        <div className="inline-flex items-center space-x-1.5 sm:space-x-2 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-blue-600/60 border border-blue-400/30 text-blue-100 text-[11px] sm:text-xs font-semibold mb-2 sm:mb-3">
-          <MapPin className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-amber-300" />
-          <span>Vidisha City Local Directory & Deals</span>
+        {/* Cinematic dark luxury gradients matching screenshot (sky fade & bottom dark fade) */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0d0d0d]/85 via-[#0d0d0d]/60 to-[#0d0d0d] pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0d0d0d]/90 via-[#0d0d0d]/40 to-transparent pointer-events-none" />
+
+        {/* Content Top: Typography matching screenshot */}
+        <div className="relative z-10 max-w-2xl text-left pt-2 sm:pt-4">
+          <h1 className="text-white font-serif italic text-2xl sm:text-3xl md:text-4xl font-normal tracking-wide leading-snug drop-shadow-md">
+            Discover Exceptional<br />
+            Local Businesses in
+          </h1>
+          
+          <div className="text-gold-400 font-script text-6xl sm:text-7xl md:text-8xl leading-none my-1 drop-shadow-[0_4px_20px_rgba(212,168,49,0.4)] select-none">
+            Vidisha
+          </div>
+
+          <p className="text-xs sm:text-sm text-[#e4e4e7] max-w-lg mt-3 leading-relaxed drop-shadow-sm font-normal">
+            A meticulously curated index of verified jewelers, fine dining, healthcare practitioners, boutique retail, and trade services.
+          </p>
         </div>
-        <h1 className="text-xl sm:text-3xl lg:text-5xl font-black tracking-tight text-white mb-2 sm:mb-3">
-          Find the Best Businesses in <span className="text-amber-400">Vidisha</span>
-        </h1>
-        <p className="text-xs sm:text-base text-blue-100/90 max-w-xl mx-auto leading-relaxed">
-          Discover verified shops, clinics, showrooms, restaurants, and professional services across Vidisha, Madhya Pradesh.
-        </p>
-      </div>
 
-      {/* Main Search Bar Form */}
-      <div ref={searchContainerRef} className="relative max-w-4xl mx-auto">
-        <form
-          onSubmit={handleSearchSubmit}
-          className="bg-white p-1.5 sm:p-2.5 rounded-2xl sm:rounded-full shadow-2xl flex flex-col md:flex-row items-center gap-1.5 sm:gap-2 text-slate-800"
-        >
-          {/* Keyword Input */}
-          <div className="flex items-center w-full md:w-2/5 px-2.5 sm:px-3 py-1 sm:py-1.5">
-            <Search className="w-4 sm:w-5 h-4 sm:h-5 text-blue-600 shrink-0 mr-2 sm:mr-2.5" />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => handleQueryChange(e.target.value)}
-              onFocus={() => query.trim().length >= 2 && setShowSuggestions(true)}
-              placeholder="Search sweets, dentists, sarees, repair..."
-              className="w-full text-xs sm:text-sm font-medium focus:outline-none placeholder-slate-400 bg-transparent text-slate-900"
-            />
-            {query && (
-              <button
-                type="button"
-                onClick={() => { setQuery(''); setSuggestions([]); }}
-                className="p-1 text-slate-400 hover:text-slate-600"
-              >
-                <X className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
-              </button>
-            )}
-          </div>
-
-          <div className="hidden md:block w-px h-8 bg-slate-200" />
-
-          {/* Category Dropdown */}
-          <div className="flex items-center w-full md:w-1/4 px-2.5 sm:px-3 py-1 sm:py-1.5 border-t md:border-t-0 border-slate-100">
-            <Grid className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-slate-400 shrink-0 mr-1.5 sm:mr-2" />
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full text-xs sm:text-sm font-medium focus:outline-none bg-transparent text-slate-700 cursor-pointer"
-            >
-              <option value="">All Categories</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="hidden md:block w-px h-8 bg-slate-200" />
-
-          {/* Locality Dropdown */}
-          <div className="flex items-center w-full md:w-1/4 px-2.5 sm:px-3 py-1 sm:py-1.5 border-t md:border-t-0 border-slate-100">
-            <MapPin className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-slate-400 shrink-0 mr-1.5 sm:mr-2" />
-            <select
-              value={selectedLocality}
-              onChange={(e) => setSelectedLocality(e.target.value)}
-              className="w-full text-xs sm:text-sm font-medium focus:outline-none bg-transparent text-slate-700 cursor-pointer"
-            >
-              <option value="">All Localities</option>
-              {vidishaLocalities.map((loc) => (
-                <option key={loc} value={loc}>
-                  {loc}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Search Button */}
-          <button
-            type="submit"
-            className="w-full md:w-auto px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md flex items-center justify-center space-x-1.5 sm:space-x-2 shrink-0 transition-transform active:scale-95"
+        {/* Content Bottom: Search Form & Filters */}
+        <div ref={searchContainerRef} className="relative z-10 w-full max-w-2xl mt-8">
+          <form
+            onSubmit={handleSearchSubmit}
+            className="space-y-3"
           >
-            <span>Search</span>
-            <ArrowRight className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
-          </button>
-        </form>
-
-        {/* Real Autosuggestions Dropdown */}
-        {showSuggestions && suggestions.length > 0 && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50 text-left">
-            <div className="p-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 bg-slate-50 px-4">
-              Matching Vidisha Businesses
+            {/* Top rounded search bar with circular gold arrow button */}
+            <div className="relative flex items-center bg-[#f5ede3] rounded-full p-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.7)] border border-white/20">
+              <Search className="w-5 h-5 text-[#4a4a4a] ml-3.5 shrink-0" />
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => handleQueryChange(e.target.value)}
+                onFocus={() => query.trim().length >= 2 && setShowSuggestions(true)}
+                placeholder="Search sweets, physicians, chanderi saree..."
+                className="w-full text-xs sm:text-sm font-medium focus:outline-none placeholder-[#737373] bg-transparent text-[#18181b] px-3"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => { setQuery(''); setSuggestions([]); }}
+                  className="p-1 text-[#525252] hover:text-[#18181b] transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+              {/* Circular Gold Search/Arrow Button */}
+              <button
+                type="submit"
+                aria-label="Search"
+                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-br from-gold-500 to-gold-600 hover:from-gold-400 hover:to-gold-500 text-dark-950 flex items-center justify-center shrink-0 shadow-md transition-transform duration-200 active:scale-95"
+              >
+                <ArrowRight className="w-5 h-5 stroke-[2.5]" />
+              </button>
             </div>
-            {suggestions.map((biz) => (
-              <button
-                key={biz.id}
-                type="button"
-                onClick={() => selectSuggestion(biz)}
-                className="w-full px-4 py-3 flex items-center justify-between hover:bg-blue-50 text-slate-800 transition-colors border-b border-slate-50 last:border-b-0"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">
-                    {biz.name.charAt(0)}
+
+            {/* Filter Row: Category & Locality rounded dropdown pills matching screenshot */}
+            <div className="grid grid-cols-2 gap-2.5">
+              {/* Category Pill */}
+              <div className="relative flex items-center bg-[#1a1a1e]/90 backdrop-blur-md rounded-2xl sm:rounded-full px-3.5 py-2.5 border border-[#333338] shadow-md hover:border-gold-500/50 transition-colors">
+                <LayoutGrid className="w-4 h-4 text-gold-400 shrink-0 mr-2" />
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full text-xs font-medium focus:outline-none bg-transparent text-white appearance-none cursor-pointer pr-4 truncate"
+                >
+                  <option value="" className="bg-[#18181c] text-white">All Categories</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id} className="bg-[#18181c] text-white">
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-[#a1a1aa] absolute right-3 pointer-events-none" />
+              </div>
+
+              {/* Locality Pill */}
+              <div className="relative flex items-center bg-[#1a1a1e]/90 backdrop-blur-md rounded-2xl sm:rounded-full px-3.5 py-2.5 border border-[#333338] shadow-md hover:border-gold-500/50 transition-colors">
+                <MapPin className="w-4 h-4 text-gold-400 shrink-0 mr-2" />
+                <select
+                  value={selectedLocality}
+                  onChange={(e) => setSelectedLocality(e.target.value)}
+                  className="w-full text-xs font-medium focus:outline-none bg-transparent text-white appearance-none cursor-pointer pr-4 truncate"
+                >
+                  <option value="" className="bg-[#18181c] text-white">All Localities</option>
+                  {vidishaLocalities.map((loc) => (
+                    <option key={loc} value={loc} className="bg-[#18181c] text-white">
+                      {loc}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-[#a1a1aa] absolute right-3 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Explore Button: Full-width gold gradient pill matching reference screenshot */}
+            <button
+              type="submit"
+              className="w-full py-3.5 rounded-full bg-gradient-to-r from-[#c9962a] via-[#d4a831] to-[#e6b84a] hover:from-[#d4a831] hover:to-[#f0c060] text-dark-950 font-bold text-sm shadow-[0_4px_20px_rgba(212,168,49,0.35)] flex items-center justify-center space-x-2 transition-transform duration-200 active:scale-98"
+            >
+              <span className="tracking-wide">Explore</span>
+              <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+            </button>
+          </form>
+
+          {/* Autosuggestions Dropdown */}
+          {showSuggestions && suggestions.length > 0 && (
+            <div className="absolute top-14 left-0 right-0 bg-[#161619] rounded-2xl shadow-2xl border border-gold-500/30 overflow-hidden z-50 text-left">
+              <div className="p-2.5 text-[10px] font-bold uppercase tracking-wider text-gold-400/90 border-b border-[#282830] bg-[#1a1a20] px-4 flex items-center justify-between">
+                <span>Matching Verified Establishments</span>
+                <span className="text-gold-300 font-semibold">{suggestions.length} Found</span>
+              </div>
+              {suggestions.map((biz) => (
+                <button
+                  key={biz.id}
+                  type="button"
+                  onClick={() => selectSuggestion(biz)}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-[#202026] text-white transition-colors border-b border-[#222228] last:border-b-0 group"
+                >
+                  <div className="flex items-center space-x-3.5">
+                    <div className="w-9 h-9 rounded-xl bg-[#282830] text-gold-400 flex items-center justify-center text-xs font-bold border border-gold-500/20">
+                      {biz.name.charAt(0)}
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-semibold text-white group-hover:text-gold-400 transition-colors line-clamp-1">{biz.name}</p>
+                      <p className="text-xs text-[#a1a1aa]">{biz.categoryName} • <span className="text-gold-300 font-medium">{biz.locality}</span></p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-900 line-clamp-1">{biz.name}</p>
-                    <p className="text-xs text-slate-500">{biz.categoryName} • {biz.locality}</p>
-                  </div>
-                </div>
-                <ArrowRight className="w-4 h-4 text-slate-400" />
-              </button>
-            ))}
-          </div>
-        )}
+                  <ArrowRight className="w-4 h-4 text-[#71717a] group-hover:text-gold-400 group-hover:translate-x-1 transition-all" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Quick Search Tags */}
-      <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs text-blue-100">
-        <span className="font-semibold text-white">Popular:</span>
-        {['Station Road', 'Sweets & Namkeen', 'Chanderi Sarees', 'Mobile Repair', 'Dentists'].map((tag) => (
-          <button
-            key={tag}
-            type="button"
-            onClick={() => {
-              setQuery(tag);
-              const params = new URLSearchParams({ q: tag });
-              navigate(`/search?${params.toString()}`);
-            }}
-            className="px-2.5 py-1 rounded-full bg-blue-800/80 hover:bg-blue-600 border border-blue-600/40 transition-colors"
-          >
-            {tag}
-          </button>
-        ))}
+      {/* Top Searches Section matching screenshot below the hero */}
+      <div className="mt-8 text-center">
+        {/* Gold fire icon and title */}
+        <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[#161619] border border-[#2e2e36] text-white text-sm font-serif mb-4 shadow-sm">
+          <span className="text-base">🔥</span>
+          <span className="font-semibold tracking-wide">Top Searches</span>
+        </div>
+
+        {/* Search Pills matching screenshot */}
+        <div className="flex flex-wrap items-center justify-center gap-2.5 max-w-3xl mx-auto">
+          {topSearches.map((item) => (
+            <button
+              key={item.label}
+              type="button"
+              onClick={() => {
+                setQuery(item.label);
+                const params = new URLSearchParams({ q: item.label });
+                navigate(`/search?${params.toString()}`);
+              }}
+              className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-[#18181c] hover:bg-[#222228] text-white border border-[#2e2e34] hover:border-gold-500/40 transition-all duration-200 text-xs font-medium shadow-sm active:scale-95"
+            >
+              <span>{item.icon}</span>
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

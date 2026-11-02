@@ -1,17 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Tag,
-  Search,
-  Grid,
-  MapPin,
-  Filter,
-  X,
-  AlertCircle,
-  RotateCw,
-  ShoppingBag,
-  Info,
-  Building2,
-  Calendar
+  Tag, Search, Grid, MapPin, X, AlertCircle, ShoppingBag
 } from 'lucide-react';
 import { Offer, Category } from '../types';
 import { OfferService } from '../services/offerService';
@@ -24,21 +13,13 @@ export const OffersPage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Filters state
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedLocality, setSelectedLocality] = useState('');
 
   const vidishaLocalities = [
-    'Station Road',
-    'Durga Nagar',
-    'Khariphatak',
-    'Madhavganj',
-    'Sherpura',
-    'Tilak Chowk',
-    'Bada Bazar',
-    'Civil Lines'
+    'Station Road', 'Durga Nagar', 'Khariphatak', 'Madhavganj',
+    'Sherpura', 'Tilak Chowk', 'Bada Bazar', 'Civil Lines'
   ];
 
   const loadOffers = async () => {
@@ -53,63 +34,48 @@ export const OffersPage: React.FC = () => {
       setCategories(categoryList);
     } catch (err: any) {
       console.error('Failed to load offers', err);
-      setError(err?.message || 'Unable to load active deals. Please check connection and try again.');
+      setError(err?.message || 'Unable to load active deals. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    loadOffers();
-  }, []);
+  useEffect(() => { loadOffers(); }, []);
 
-  // Filtered in-memory list
   const filteredOffers = offers.filter(o => {
-    if (selectedCategory && o.categoryId !== selectedCategory) {
-      return false;
-    }
-    if (selectedLocality && o.businessLocality?.toLowerCase() !== selectedLocality.toLowerCase()) {
-      return false;
-    }
+    if (selectedCategory && o.categoryId !== selectedCategory) return false;
+    if (selectedLocality && o.businessLocality?.toLowerCase() !== selectedLocality.toLowerCase()) return false;
     if (query.trim()) {
       const q = query.toLowerCase().trim();
-      const matchesTitle = o.title.toLowerCase().includes(q);
-      const matchesDesc = o.description.toLowerCase().includes(q);
-      const matchesBiz = o.businessName.toLowerCase().includes(q);
-      const matchesLoc = (o.businessLocality || '').toLowerCase().includes(q);
-      if (!matchesTitle && !matchesDesc && !matchesBiz && !matchesLoc) {
-        return false;
-      }
+      if (!o.title.toLowerCase().includes(q) && !o.description.toLowerCase().includes(q) &&
+          !o.businessName.toLowerCase().includes(q) && !(o.businessLocality || '').toLowerCase().includes(q)) return false;
     }
     return true;
   });
 
-  const clearFilters = () => {
-    setQuery('');
-    setSelectedCategory('');
-    setSelectedLocality('');
-  };
+  const clearFilters = () => { setQuery(''); setSelectedCategory(''); setSelectedLocality(''); };
+  const hasFilters = query || selectedCategory || selectedLocality;
 
   return (
-    <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-8">
+    <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-6 sm:py-10 pb-24">
       {/* Page Header */}
-      <div className="text-center max-w-2xl mx-auto mb-6 sm:mb-8">
-        <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-800 text-xs font-bold mb-2.5 border border-amber-200">
-          <Tag className="w-3.5 h-3.5 text-amber-600" />
-          <span>Vidisha City Store Promotions</span>
+      <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10">
+        <div className="inline-flex items-center space-x-1.5 px-3.5 py-1 rounded-full bg-[#1c1c22] text-gold-400 text-xs font-bold mb-3 border border-gold-500/30">
+          <Tag className="w-3.5 h-3.5 text-gold-400" />
+          <span>Vidisha City Merchant Promotions</span>
         </div>
-        <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight mb-2 sm:mb-3">
-          Today's In-Store Offers & Deals
+        <h1 className="font-serif text-2xl sm:text-4xl font-bold text-white tracking-tight mb-2 sm:mb-3">
+          Exclusive In-Store Offers & Deals
         </h1>
-        <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-xl mx-auto">
-          Discover verified promotional discounts and complimentary gifts directly published by storefronts and dining destinations in Vidisha.
+        <p className="text-xs sm:text-sm text-[#a1a1aa] leading-relaxed max-w-xl mx-auto font-light">
+          Curated promotional discounts and complimentary gifts published directly by storefronts and dining establishments in Vidisha.
         </p>
 
-        {/* Clear Non-Transactional Business Model Notice */}
-        <div className="mt-4 p-3 sm:p-3.5 bg-blue-50/70 border border-blue-200/80 rounded-2xl text-left text-xs text-blue-900 flex items-start space-x-2.5">
-          <ShoppingBag className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-          <div className="text-[11px] sm:text-xs leading-relaxed">
-            <strong>In-Person Merchant Offers:</strong> Vidisha City is a local business discovery platform and does not handle online checkout or delivery transactions. Simply present the offer pass at the store billing counter before your bill is generated.
+        {/* In-Store Notice */}
+        <div className="mt-5 p-3.5 bg-[#141418] border border-gold-500/30 rounded-2xl text-left text-xs text-[#d4d4d8] flex items-start space-x-3 shadow-md">
+          <ShoppingBag className="w-4 h-4 text-gold-400 shrink-0 mt-0.5" />
+          <div className="text-[11px] sm:text-xs leading-relaxed font-light">
+            <strong className="font-semibold text-white">In-Person Redemption Only:</strong> Vidisha City does not process online checkout or delivery. Simply present the offer at the store billing counter before your bill is generated.
           </div>
         </div>
       </div>
@@ -118,23 +84,20 @@ export const OffersPage: React.FC = () => {
       <BannerDisplay placement="offers" className="mb-6 sm:mb-8" />
 
       {/* Filter and Search Bar */}
-      <div className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 border border-slate-200 shadow-sm mb-6 sm:mb-8 space-y-3">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-3">
+      <div className="bg-[#141417] rounded-3xl p-4 sm:p-6 border border-[#26262e] shadow-[0_8px_30px_rgba(0,0,0,0.6)] mb-7 sm:mb-10 space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* Keyword Search */}
           <div className="relative">
-            <Search className="w-4 sm:w-5 h-4 sm:h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 sm:w-5 h-4 sm:h-5 text-[#71717a] absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by deal, store, or keyword..."
-              className="w-full pl-9 sm:pl-10 pr-8 py-2 sm:py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600 bg-slate-50/50"
+              className="w-full pl-10 pr-8 py-2.5 text-xs sm:text-sm rounded-full border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#1c1c22] text-white placeholder-[#71717a] transition-all"
             />
             {query && (
-              <button
-                onClick={() => setQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600"
-              >
+              <button onClick={() => setQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-[#71717a] hover:text-white">
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
@@ -142,48 +105,43 @@ export const OffersPage: React.FC = () => {
 
           {/* Category Dropdown */}
           <div className="relative">
-            <Grid className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Grid className="w-4 h-4 text-gold-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full pl-9 pr-8 py-2 sm:py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600 bg-slate-50/50 text-slate-700 cursor-pointer"
+              className="w-full pl-9 pr-8 py-2.5 text-xs sm:text-sm rounded-full border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#1c1c22] text-white cursor-pointer"
             >
-              <option value="">All Business Categories</option>
+              <option value="" className="bg-[#18181c]">All Business Categories</option>
               {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
+                <option key={c.id} value={c.id} className="bg-[#18181c]">{c.name}</option>
               ))}
             </select>
           </div>
 
           {/* Locality Dropdown */}
           <div className="relative">
-            <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <MapPin className="w-4 h-4 text-gold-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <select
               value={selectedLocality}
               onChange={(e) => setSelectedLocality(e.target.value)}
-              className="w-full pl-9 pr-8 py-2 sm:py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600 bg-slate-50/50 text-slate-700 cursor-pointer"
+              className="w-full pl-9 pr-8 py-2.5 text-xs sm:text-sm rounded-full border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#1c1c22] text-white cursor-pointer"
             >
-              <option value="">All Vidisha Localities</option>
+              <option value="" className="bg-[#18181c]">All Vidisha Localities</option>
               {vidishaLocalities.map((loc) => (
-                <option key={loc} value={loc}>
-                  {loc}
-                </option>
+                <option key={loc} value={loc} className="bg-[#18181c]">{loc}</option>
               ))}
             </select>
           </div>
         </div>
 
-        {/* Filter Summary & Reset Pill */}
-        {(query || selectedCategory || selectedLocality) && (
-          <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
-            <span className="text-slate-500 text-[11px]">
-              Showing <strong>{filteredOffers.length}</strong> matching promotional deals
+        {hasFilters && (
+          <div className="flex items-center justify-between pt-2 border-t border-[#222228] text-xs">
+            <span className="text-[#a1a1aa] text-[11px] font-light">
+              Showing <strong className="text-white">{filteredOffers.length}</strong> matching deals
             </span>
             <button
               onClick={clearFilters}
-              className="text-blue-600 hover:text-blue-800 font-semibold text-xs flex items-center space-x-1"
+              className="text-rose-400 hover:underline font-semibold text-xs flex items-center space-x-1 transition-colors"
             >
               <X className="w-3.5 h-3.5" />
               <span>Reset Filters</span>
@@ -192,70 +150,46 @@ export const OffersPage: React.FC = () => {
         )}
       </div>
 
-      {/* Error State with Retry Button */}
+      {/* Error State */}
       {error && (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs flex items-center justify-between mb-8">
+        <div className="p-4 bg-rose-950/40 border border-rose-500/30 rounded-2xl text-rose-200 text-xs flex items-center justify-between mb-8">
           <div className="flex items-center space-x-2">
-            <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
             <span>{error}</span>
           </div>
-          <button
-            onClick={loadOffers}
-            className="px-3 py-1.5 rounded-lg bg-rose-600 text-white font-bold hover:bg-rose-700 flex items-center space-x-1 text-xs"
-          >
-            <RotateCw className="w-3.5 h-3.5" />
-            <span>Retry</span>
-          </button>
         </div>
       )}
 
-      {/* Loading Skeletons */}
+      {/* Offers Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-6">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-72 bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-5 skeleton-shimmer" />
+            <div key={i} className="h-64 rounded-3xl skeleton-shimmer" />
           ))}
         </div>
       ) : filteredOffers.length === 0 ? (
-        /* Empty State */
-        <div className="bg-white rounded-2xl sm:rounded-3xl p-8 sm:p-12 text-center border border-slate-200 max-w-md mx-auto my-6 shadow-sm">
-          <AlertCircle className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-base font-bold text-slate-800 mb-1">
-            No Active Deals Found
-          </h3>
-          <p className="text-xs text-slate-500 mb-5 leading-relaxed">
-            {query || selectedCategory || selectedLocality
-              ? 'No promotions match your selected filters. Try broadening your criteria.'
-              : 'There are currently no active seasonal promotions published in this category.'}
+        <div className="text-center py-16 bg-[#141417] rounded-3xl border border-[#26262e] shadow-xl max-w-lg mx-auto">
+          <Tag className="w-12 h-12 text-gold-500/50 mx-auto mb-3" />
+          <h3 className="font-serif text-lg font-bold text-white mb-1.5">No Active Offers Found</h3>
+          <p className="text-xs text-[#a1a1aa] mb-5 font-light">
+            There are currently no published merchant offers matching your search criteria.
           </p>
-          {(query || selectedCategory || selectedLocality) && (
+          {hasFilters && (
             <button
               onClick={clearFilters}
-              className="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 shadow-sm"
+              className="px-5 py-2 rounded-full bg-gradient-to-r from-gold-500 to-gold-600 text-dark-950 font-bold text-xs shadow-md"
             >
-              Show All Available Deals
+              Reset Filters
             </button>
           )}
         </div>
       ) : (
-        /* Offers Grid */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-6">
           {filteredOffers.map((offer) => (
             <OfferCard key={offer.id} offer={offer} />
           ))}
         </div>
       )}
-
-      {/* Mandatory Platform Disclaimer */}
-      <div className="mt-10 p-4 bg-slate-100 rounded-2xl text-[11px] sm:text-xs text-slate-500 leading-relaxed border border-slate-200/60">
-        <p className="font-semibold text-slate-700 mb-1 flex items-center space-x-1.5">
-          <Info className="w-3.5 h-3.5 text-slate-400" />
-          <span>Local Offer Verification Policy:</span>
-        </p>
-        <p>
-          All promotional listings, discounts, and benefits on this page are provided directly by authorized store owners in Vidisha. Vidisha City does not process online payments, deduct automatic invoice discounts, or guarantee inventory availability. Please confirm promotional terms with the merchant prior to finalizing your in-store purchase.
-        </p>
-      </div>
     </div>
   );
 };
