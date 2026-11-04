@@ -10,12 +10,8 @@ export const Footer: React.FC = () => {
           {/* Brand Col */}
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-[#141418] border border-gold-500/40 p-1.5 flex items-center justify-center shadow-md">
-                <svg viewBox="0 0 100 100" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M50 8L60 28H40L50 8Z" fill="#d4a831" />
-                  <path d="M50 24L75 48L50 92L25 48L50 24Z" stroke="#d4a831" strokeWidth="4" fill="#141416" />
-                  <path d="M50 36L66 52L50 82L34 52L50 36Z" fill="#d4a831" fillOpacity="0.85" />
-                </svg>
+              <div className="w-11 h-11 rounded-full overflow-hidden bg-white/5 border-2 border-gold-500/60 p-0.5 flex items-center justify-center shadow-md">
+                <img src="/logo.png" alt="Vidisha City Logo" className="w-full h-full object-contain rounded-full" />
               </div>
               <span className="font-serif text-2xl font-bold text-white tracking-tight">
                 Vidisha<span className="text-gold-500 font-serif italic ml-0.5">City</span>

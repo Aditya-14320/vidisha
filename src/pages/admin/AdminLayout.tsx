@@ -78,12 +78,12 @@ export const AdminLayout: React.FC = () => {
         {/* Brand Header */}
         <div className="p-5 border-b border-slate-800">
           <div className="flex items-center space-x-3 mb-2">
-            <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center p-1">
-              <Shield className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-white/10 border border-gold-500/50 p-0.5 flex items-center justify-center shrink-0">
+              <img src="/logo.png" alt="Vidisha City Logo" className="w-full h-full object-contain rounded-full" />
             </div>
             <div>
               <span className="font-black text-white text-base tracking-tight">
-                Vidisha<span className="text-blue-400">Admin</span>
+                Vidisha<span className="text-amber-400">Admin</span>
               </span>
               <p className="text-[10px] text-amber-400 font-bold uppercase tracking-wider">
                 Management Portal

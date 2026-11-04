@@ -55,7 +55,8 @@ export const AdminBusinessesPage: React.FC = () => {
   const [photo1, setPhoto1] = useState('');
   const [photo2, setPhoto2] = useState('');
   const [photo3, setPhoto3] = useState('');
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const loadData = async () => {
     setLoading(true);
@@ -86,9 +87,13 @@ export const AdminBusinessesPage: React.FC = () => {
 
   const handleDelete = async (biz: Business) => {
     if (!window.confirm(`Are you sure you want to delete "${biz.name}"? This action cannot be undone.`)) return;
-    await StorageService.deleteBusiness(biz.id);
-    setMessage(`Deleted business "${biz.name}"`);
-    loadData();
+    try {
+      await StorageService.deleteBusiness(biz.id);
+      setMessage({ text: `Deleted business "${biz.name}" successfully.`, type: 'success' });
+      await loadData();
+    } catch (err: any) {
+      setMessage({ text: `Failed to delete business: ${err.message || 'Database error'}`, type: 'error' });
+    }
   };
 
   const handleOpenAdd = () => {
@@ -146,32 +151,39 @@ export const AdminBusinessesPage: React.FC = () => {
     e.preventDefault();
     if (!editingBiz) return;
 
-    const slug = editingBiz.slug || editingBiz.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const services = servicesInput
-      .split(',')
-      .map(s => s.trim())
-      .filter(Boolean);
-    const gallery = [photo1, photo2, photo3].map(p => p.trim()).filter(Boolean);
+    setSaving(true);
+    try {
+      const slug = editingBiz.slug || editingBiz.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      const services = servicesInput
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+      const gallery = [photo1, photo2, photo3].map(p => p.trim()).filter(Boolean);
 
-    // Synchronize category details
-    const cat = categories.find(c => c.id === editingBiz.categoryId);
+      // Synchronize category details
+      const cat = categories.find(c => c.id === editingBiz.categoryId);
 
-    const toSave: Business = {
-      ...editingBiz,
-      slug,
-      categoryName: cat?.name || editingBiz.categoryName,
-      categorySlug: cat?.slug || editingBiz.categorySlug,
-      services,
-      gallery,
-      coverImageUrl: editingBiz.coverImageUrl || gallery[0] || '',
-      updatedAt: new Date().toISOString(),
-    };
+      const toSave: Business = {
+        ...editingBiz,
+        slug,
+        categoryName: cat?.name || editingBiz.categoryName,
+        categorySlug: cat?.slug || editingBiz.categorySlug,
+        services,
+        gallery,
+        coverImageUrl: editingBiz.coverImageUrl || gallery[0] || '',
+        updatedAt: new Date().toISOString(),
+      };
 
-    await StorageService.saveBusiness(toSave);
-    setMessage(`${isNew ? 'Added' : 'Updated'} business "${toSave.name}" successfully.`);
-    setEditingBiz(null);
-    setIsNew(false);
-    loadData();
+      await StorageService.saveBusiness(toSave);
+      setMessage({ text: `${isNew ? 'Added' : 'Updated'} business "${toSave.name}" successfully.`, type: 'success' });
+      setEditingBiz(null);
+      setIsNew(false);
+      await loadData();
+    } catch (err: any) {
+      setMessage({ text: `Failed to save business: ${err.message || 'Database error'}`, type: 'error' });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleExportCSV = () => {
@@ -246,8 +258,21 @@ export const AdminBusinessesPage: React.FC = () => {
       </div>
 
       {message && (
-        <div className="p-3 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-semibold flex items-center justify-between">
-          <span>{message}</span>
+        <div
+          className={`p-3.5 rounded-2xl border text-xs font-semibold flex items-center justify-between ${
+            message.type === 'success'
+              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+              : 'bg-red-50 text-red-800 border-red-200'
+          }`}
+        >
+          <div className="flex items-center space-x-2">
+            {message.type === 'success' ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            ) : (
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+            )}
+            <span>{message.text}</span>
+          </div>
           <button onClick={() => setMessage(null)} className="text-slate-400 hover:text-slate-700">
             <X className="w-4 h-4" />
           </button>
@@ -813,10 +838,11 @@ export const AdminBusinessesPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md transition flex items-center space-x-1.5"
+                  disabled={saving}
+                  className="px-6 py-2.5 font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-xl shadow-md transition flex items-center space-x-1.5 cursor-pointer"
                 >
                   <Save className="w-4 h-4" />
-                  <span>{isNew ? 'Create Business' : 'Save Changes'}</span>
+                  <span>{saving ? 'Saving...' : (isNew ? 'Create Business' : 'Save Changes')}</span>
                 </button>
               </div>
             </form>

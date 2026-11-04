@@ -43,16 +43,14 @@ export const Header: React.FC = () => {
       {/* Main Header Row matching screenshot */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          {/* Logo & Brand matching screenshot gold diamond emblem & typography */}
+          {/* Logo & Brand matching official Vidisha City emblem */}
           <Link to="/" className="flex items-center space-x-3 group">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-b from-[#1c1a14] to-[#0a0a0a] p-2 flex items-center justify-center border border-gold-500/40 shadow-[0_0_15px_rgba(212,168,49,0.15)] group-hover:border-gold-400 transition-all duration-300">
-              <svg viewBox="0 0 100 100" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* Temple spire & diamond emblem */}
-                <path d="M50 8L60 28H40L50 8Z" fill="#d4a831" />
-                <path d="M50 24L75 48L50 92L25 48L50 24Z" stroke="#d4a831" strokeWidth="4" fill="#141416" />
-                <path d="M50 36L66 52L50 82L34 52L50 36Z" fill="#d4a831" fillOpacity="0.85" />
-                <circle cx="50" cy="52" r="5" fill="#0d0d0d" />
-              </svg>
+            <div className="w-12 h-12 rounded-full overflow-hidden bg-white/5 p-0.5 flex items-center justify-center border-2 border-gold-500/60 shadow-[0_0_15px_rgba(212,168,49,0.25)] group-hover:border-gold-400 group-hover:scale-105 transition-all duration-300">
+              <img
+                src="/logo.png"
+                alt="Vidisha City Logo"
+                className="w-full h-full object-contain rounded-full"
+              />
             </div>
             <div>
               <div className="flex items-baseline">

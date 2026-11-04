@@ -64,9 +64,19 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
-    // Payment Records: Private to user and admin
-    match /paymentRecords/{paymentId} {
-      allow read: if isAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+    // Banners & Banner Packages
+    match /banners/{bannerId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /bannerPackages/{packageId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Payments (alias for payments collection)
+    match /payments/{paymentId} {
+      allow read: if isAdmin();
       allow write: if isAdmin();
     }
 
@@ -89,7 +99,8 @@ service cloud.firestore {
 
     // Admin Users Directory
     match /adminUsers/{userId} {
-      allow read, write: if isAdmin();
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
     }
   }
 }

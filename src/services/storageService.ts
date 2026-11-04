@@ -100,34 +100,21 @@ export function deduplicateOffers(offers: Offer[]): Offer[] {
 export const MOCK_BUSINESS_IDS = new Set<string>([]);
 export const MOCK_OFFER_IDS = new Set<string>([]);
 
-// Check if local persistent store is initialized; if not, seed it with rich Vidisha database.
+// Check if local persistent store is initialized; if not, seed it with initial defaults once.
 function ensureInitializedLocalStore() {
   if (typeof window === 'undefined') return;
   const isInit = localStorage.getItem(STORAGE_KEYS.INITIALIZED);
   if (!isInit) {
-    const rawBiz = localStorage.getItem(STORAGE_KEYS.BUSINESSES);
-    let existingList: Business[] = [];
-    if (rawBiz) {
-      try {
-        const parsed = JSON.parse(rawBiz);
-        if (Array.isArray(parsed)) existingList = parsed;
-      } catch (e) {}
+    // If not initialized yet, set default empty arrays / seeds once
+    if (!localStorage.getItem(STORAGE_KEYS.CATEGORIES)) {
+      localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(SEED_CATEGORIES));
     }
-    const combinedBiz = deduplicateBusinesses([...existingList, ...SEED_BUSINESSES]);
-
-    const rawOffers = localStorage.getItem(STORAGE_KEYS.OFFERS);
-    let existingOffers: Offer[] = [];
-    if (rawOffers) {
-      try {
-        const parsed = JSON.parse(rawOffers);
-        if (Array.isArray(parsed)) existingOffers = parsed;
-      } catch (e) {}
+    if (!localStorage.getItem(STORAGE_KEYS.BUSINESSES)) {
+      localStorage.setItem(STORAGE_KEYS.BUSINESSES, JSON.stringify(deduplicateBusinesses(SEED_BUSINESSES)));
     }
-    const combinedOffers = deduplicateOffers([...existingOffers, ...SEED_OFFERS]);
-
-    localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(SEED_CATEGORIES));
-    localStorage.setItem(STORAGE_KEYS.BUSINESSES, JSON.stringify(combinedBiz));
-    localStorage.setItem(STORAGE_KEYS.OFFERS, JSON.stringify(combinedOffers));
+    if (!localStorage.getItem(STORAGE_KEYS.OFFERS)) {
+      localStorage.setItem(STORAGE_KEYS.OFFERS, JSON.stringify(deduplicateOffers(SEED_OFFERS)));
+    }
     if (!localStorage.getItem(STORAGE_KEYS.SLOTS)) {
       localStorage.setItem(STORAGE_KEYS.SLOTS, JSON.stringify(INITIAL_TOP10_SLOTS));
     }
@@ -151,7 +138,7 @@ function ensureInitializedLocalStore() {
           performedBy: 'System Bootstrap',
           targetType: 'settings',
           targetId: 'seed',
-          details: { seedDate: new Date().toISOString(), businesses: combinedBiz.length },
+          details: { seedDate: new Date().toISOString(), businesses: SEED_BUSINESSES.length },
           timestamp: new Date().toISOString()
         }
       ]));
@@ -263,41 +250,158 @@ export const StorageService = {
     }
   },
 
-  async syncSeedToFirestore(): Promise<{ success: boolean; count: number; error?: string }> {
+  /**
+   * Authoritative Live Synchronization:
+   * Pulls the absolute current source of truth from Cloud Firestore and synchronizes
+   * local stores. Never resurrects deleted data or injects hardcoded seed records.
+   */
+  async syncFirestoreLive(): Promise<{ success: boolean; count: number; error?: string }> {
     if (!db) return { success: false, count: 0, error: 'Cloud Firestore is not initialized or offline.' };
 
     try {
       let count = 0;
-      // 1. Categories
+
+      // 1. Fetch categories directly from Cloud Firestore
+      const catSnap = await getDocs(query(collection(db, 'categories'), orderBy('order', 'asc')));
+      const liveCategories = catSnap.docs.map(d => ({ id: d.id, ...d.data() } as Category));
+      this.setLocal(STORAGE_KEYS.CATEGORIES, liveCategories);
+      count += liveCategories.length;
+
+      // 2. Fetch businesses directly from Cloud Firestore
+      const bizSnap = await getDocs(collection(db, 'businesses'));
+      const liveBusinesses = deduplicateBusinesses(
+        bizSnap.docs.map(d => ({ id: d.id, ...d.data() } as Business)).filter(b => !MOCK_BUSINESS_IDS.has(b.id))
+      );
+      this.setLocal(STORAGE_KEYS.BUSINESSES, liveBusinesses);
+      count += liveBusinesses.length;
+
+      // 3. Fetch offers directly from Cloud Firestore
+      const offSnap = await getDocs(collection(db, 'offers'));
+      const liveOffers = deduplicateOffers(
+        offSnap.docs.map(d => ({ id: d.id, ...d.data() } as Offer)).filter(o => !MOCK_OFFER_IDS.has(o.id))
+      );
+      this.setLocal(STORAGE_KEYS.OFFERS, liveOffers);
+      count += liveOffers.length;
+
+      // 4. Fetch applications directly from Cloud Firestore
+      try {
+        const appSnap = await getDocs(query(collection(db, 'listingApplications'), orderBy('submittedAt', 'desc')));
+        const liveApps = appSnap.docs.map(d => ({ id: d.id, ...d.data() } as ListingApplication));
+        this.setLocal(STORAGE_KEYS.APPLICATIONS, liveApps);
+        count += liveApps.length;
+      } catch (appErr) {
+        console.warn('Listing applications sync notice:', appErr);
+      }
+
+      // 5. Fetch banners directly from Cloud Firestore
+      try {
+        const bannerSnap = await getDocs(collection(db, 'banners'));
+        const liveBanners = bannerSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        this.setLocal('vidisha_banners_v1', liveBanners);
+        count += liveBanners.length;
+      } catch (bannerErr) {
+        console.warn('Banners sync notice:', bannerErr);
+      }
+
+      return { success: true, count };
+    } catch (err: any) {
+      console.error('Failed to sync live Firestore data:', err);
+      return { success: false, count: 0, error: err.message || 'Error synchronizing with Cloud Firestore.' };
+    }
+  },
+
+  /**
+   * Explicit Seed Importer: Only runs if the administrator explicitly chooses to import default seed.
+   */
+  async populateSeedDatabaseToFirestore(): Promise<{ success: boolean; count: number; error?: string }> {
+    if (!db) return { success: false, count: 0, error: 'Cloud Firestore is not initialized or offline.' };
+
+    try {
+      let count = 0;
       for (const cat of SEED_CATEGORIES) {
         await setDoc(doc(db, 'categories', cat.id), cat, { merge: true });
         count++;
       }
-
-      // 2. Businesses
       for (const biz of SEED_BUSINESSES) {
         await setDoc(doc(db, 'businesses', biz.id), biz, { merge: true });
         count++;
       }
-
-      // 3. Offers
       for (const off of SEED_OFFERS) {
         await setDoc(doc(db, 'offers', off.id), off, { merge: true });
         count++;
       }
-
-      // 4. Global Settings
       await setDoc(doc(db, 'appSettings', 'global-settings'), SEED_SETTINGS, { merge: true });
       count++;
 
+      // Resync state
+      await this.syncFirestoreLive();
+
       return { success: true, count };
     } catch (err: any) {
-      const isPermission = err?.code === 'permission-denied' || (err?.message && err.message.includes('Missing or insufficient permissions'));
-      const friendlyError = isPermission
-        ? 'Firebase Firestore is currently locked or rules need publishing. In your Firebase Console > Firestore Database > Rules tab, paste the rules from firestore.rules and click "Publish".'
-        : (err.message || 'Error writing to Firestore');
-      console.warn('Firestore sync status:', friendlyError);
-      return { success: false, count: 0, error: friendlyError };
+      return { success: false, count: 0, error: err.message || 'Error populating seed to Firestore' };
+    }
+  },
+
+  // Backward compatibility alias: redirects to live sync rather than overwriting with seed
+  async syncSeedToFirestore(): Promise<{ success: boolean; count: number; error?: string }> {
+    return this.syncFirestoreLive();
+  },
+
+  /**
+   * Clears and wipes all data from Cloud Firestore (and optionally local cache).
+   * Targets all collections: businesses, categories, offers, bannerPackages, banners,
+   * listingApplications, payments, offerClaims, appSettings, and reports.
+   */
+  async clearAllFirebaseData(): Promise<{ success: boolean; count: number; error?: string }> {
+    if (!db) {
+      return { success: false, count: 0, error: 'Cloud Firestore is not initialized or offline.' };
+    }
+
+    const collectionsToClear = [
+      'businesses',
+      'categories',
+      'offers',
+      'bannerPackages',
+      'banners',
+      'listingApplications',
+      'payments',
+      'offerClaims',
+      'appSettings',
+      'reports',
+      'listingSlots',
+      'auditLogs'
+    ];
+
+    try {
+      let totalDeleted = 0;
+      for (const colName of collectionsToClear) {
+        try {
+          const snap = await getDocs(collection(db, colName));
+          if (!snap.empty) {
+            for (const docSnap of snap.docs) {
+              await deleteDoc(doc(db, colName, docSnap.id));
+              totalDeleted++;
+            }
+          }
+        } catch (colErr: any) {
+          console.warn(`Error clearing collection ${colName}:`, colErr);
+        }
+      }
+
+      // Also reset local working stores so browser memory is in sync with the empty state
+      this.setLocal(STORAGE_KEYS.BUSINESSES, []);
+      this.setLocal(STORAGE_KEYS.CATEGORIES, []);
+      this.setLocal(STORAGE_KEYS.OFFERS, []);
+      this.setLocal(STORAGE_KEYS.APPLICATIONS, []);
+      this.setLocal(STORAGE_KEYS.PAYMENTS, []);
+      this.setLocal(STORAGE_KEYS.REPORTS, []);
+      this.setLocal('vidisha_banners_v1', []);
+      this.setLocal('vidisha_banner_packages_v1', []);
+
+      return { success: true, count: totalDeleted };
+    } catch (err: any) {
+      console.error('Failed to wipe Firestore data:', err);
+      return { success: false, count: 0, error: err.message || 'Error deleting data from Firestore.' };
     }
   },
 
@@ -313,17 +417,8 @@ export const StorageService = {
    * Automatically initializes and seeds Cloud Firestore if it is currently empty.
    */
   async autoSeedIfEmpty(): Promise<void> {
-    if (!this.isUsingFirebase() || !db) return;
-    try {
-      const snap = await getDocs(collection(db, 'categories'));
-      if (snap.empty) {
-        console.info('[Vidisha City] Firestore database is empty. Auto-seeding 20 official categories & settings...');
-        await this.syncSeedToFirestore();
-        console.info('[Vidisha City] Auto-seeding completed!');
-      }
-    } catch (err) {
-      logFirestoreNotice('autoSeedIfEmpty', err);
-    }
+    // Disabled automatic re-population so intentional deletions or empty state persist
+    return;
   },
 
   // ---------------- CATEGORIES ----------------
@@ -332,16 +427,18 @@ export const StorageService = {
       try {
         const snap = await getDocs(query(collection(db!, 'categories'), orderBy('order', 'asc')));
         if (!snap.empty) {
-          return snap.docs.map(d => ({ id: d.id, ...d.data() } as Category));
+          const remoteList = snap.docs.map(d => ({ id: d.id, ...d.data() } as Category));
+          this.setLocal(STORAGE_KEYS.CATEGORIES, remoteList);
+          return remoteList;
         } else {
-          // If empty, auto-seed in the background for next loads
-          this.autoSeedIfEmpty().catch(console.warn);
+          this.setLocal(STORAGE_KEYS.CATEGORIES, []);
+          return [];
         }
       } catch (err) {
         logFirestoreNotice('getCategories', err);
       }
     }
-    const list = this.getLocal<Category[]>(STORAGE_KEYS.CATEGORIES, SEED_CATEGORIES);
+    const list = this.getLocal<Category[]>(STORAGE_KEYS.CATEGORIES, []);
     return [...list].sort((a, b) => a.order - b.order);
   },
 
@@ -349,11 +446,12 @@ export const StorageService = {
     if (this.isUsingFirebase()) {
       try {
         await setDoc(doc(db!, 'categories', category.id), category, { merge: true });
-      } catch (err) {
-        logFirestoreNotice('saveCategory', err);
+      } catch (err: any) {
+        console.error('Failed to save category to Firestore:', err);
+        throw new Error(err?.message || 'Failed to save category to database.');
       }
     }
-    const list = this.getLocal<Category[]>(STORAGE_KEYS.CATEGORIES, SEED_CATEGORIES);
+    const list = this.getLocal<Category[]>(STORAGE_KEYS.CATEGORIES, []);
     const index = list.findIndex(c => c.id === category.id);
     if (index >= 0) {
       list[index] = { ...list[index], ...category, updatedAt: new Date().toISOString() };
@@ -368,39 +466,38 @@ export const StorageService = {
     if (this.isUsingFirebase()) {
       try {
         await deleteDoc(doc(db!, 'categories', categoryId));
-      } catch (err) {
-        logFirestoreNotice('deleteCategory', err);
+      } catch (err: any) {
+        console.error('Failed to delete category from Firestore:', err);
+        throw new Error(err?.message || 'Failed to delete category from database.');
       }
     }
-    const list = this.getLocal<Category[]>(STORAGE_KEYS.CATEGORIES, SEED_CATEGORIES);
+    const list = this.getLocal<Category[]>(STORAGE_KEYS.CATEGORIES, []);
     const updated = list.filter(c => c.id !== categoryId);
     this.setLocal(STORAGE_KEYS.CATEGORIES, updated);
   },
 
   // ---------------- BUSINESSES ----------------
   async getBusinesses(): Promise<Business[]> {
-    const localList = this.getLocal<Business[]>(STORAGE_KEYS.BUSINESSES, []);
-    let remoteList: Business[] = [];
-
     if (this.isUsingFirebase()) {
       try {
         const snap = await getDocs(collection(db!, 'businesses'));
         if (!snap.empty) {
-          remoteList = snap.docs.map(d => ({ id: d.id, ...d.data() } as Business));
+          const remoteList = snap.docs.map(d => ({ id: d.id, ...d.data() } as Business));
+          const cleanRemote = deduplicateBusinesses(remoteList.filter(b => !MOCK_BUSINESS_IDS.has(b.id)));
+          this.setLocal(STORAGE_KEYS.BUSINESSES, cleanRemote);
+          return cleanRemote;
+        } else {
+          this.setLocal(STORAGE_KEYS.BUSINESSES, []);
+          return [];
         }
       } catch (err) {
         logFirestoreNotice('getBusinesses', err);
       }
     }
 
+    const localList = this.getLocal<Business[]>(STORAGE_KEYS.BUSINESSES, []);
     const cleanLocal = localList.filter(b => !MOCK_BUSINESS_IDS.has(b.id));
-    const cleanRemote = remoteList.filter(b => !MOCK_BUSINESS_IDS.has(b.id));
-
-    if (cleanRemote.length === 0) {
-      return deduplicateBusinesses(cleanLocal);
-    }
-
-    return deduplicateBusinesses([...cleanRemote, ...cleanLocal]);
+    return deduplicateBusinesses(cleanLocal);
   },
 
   async getBusinessByIdOrSlug(idOrSlug: string): Promise<Business | null> {
@@ -419,12 +516,13 @@ export const StorageService = {
     if (this.isUsingFirebase()) {
       try {
         await setDoc(doc(db!, 'businesses', updatedBusiness.id), updatedBusiness, { merge: true });
-      } catch (err) {
-        logFirestoreNotice('saveBusiness', err);
+      } catch (err: any) {
+        console.error('Failed to save business to Firestore:', err);
+        throw new Error(err?.message || 'Failed to save business to database.');
       }
     }
 
-    const list = this.getLocal<Business[]>(STORAGE_KEYS.BUSINESSES, SEED_BUSINESSES);
+    const list = this.getLocal<Business[]>(STORAGE_KEYS.BUSINESSES, []);
     const index = list.findIndex(b => b.id === updatedBusiness.id || (b.slug && b.slug === updatedBusiness.slug));
     if (index >= 0) {
       list[index] = updatedBusiness;
@@ -440,11 +538,12 @@ export const StorageService = {
     if (this.isUsingFirebase()) {
       try {
         await deleteDoc(doc(db!, 'businesses', businessId));
-      } catch (err) {
-        logFirestoreNotice('deleteBusiness', err);
+      } catch (err: any) {
+        console.error('Failed to delete business from Firestore:', err);
+        throw new Error(err?.message || 'Failed to delete business from database.');
       }
     }
-    const list = this.getLocal<Business[]>(STORAGE_KEYS.BUSINESSES, SEED_BUSINESSES);
+    const list = this.getLocal<Business[]>(STORAGE_KEYS.BUSINESSES, []);
     this.setLocal(STORAGE_KEYS.BUSINESSES, list.filter(b => b.id !== businessId));
   },
 
@@ -795,31 +894,26 @@ export const StorageService = {
 
   // ---------------- OFFERS ----------------
   async getOffers(): Promise<Offer[]> {
-    const localOffers = this.getLocal<Offer[]>(STORAGE_KEYS.OFFERS, []);
-    let remoteOffers: Offer[] = [];
-
     if (this.isUsingFirebase()) {
       try {
         const snap = await getDocs(collection(db!, 'offers'));
         if (!snap.empty) {
-          remoteOffers = snap.docs.map(d => ({ id: d.id, ...d.data() } as Offer));
+          const remoteOffers = snap.docs.map(d => ({ id: d.id, ...d.data() } as Offer));
+          const cleanRemote = deduplicateOffers(remoteOffers.filter(o => !MOCK_OFFER_IDS.has(o.id)));
+          this.setLocal(STORAGE_KEYS.OFFERS, cleanRemote);
+          return cleanRemote;
+        } else {
+          this.setLocal(STORAGE_KEYS.OFFERS, []);
+          return [];
         }
       } catch (err) {
         logFirestoreNotice('getOffers', err);
       }
     }
 
+    const localOffers = this.getLocal<Offer[]>(STORAGE_KEYS.OFFERS, []);
     const cleanLocal = localOffers.filter(o => !MOCK_OFFER_IDS.has(o.id));
-    const cleanRemote = remoteOffers.filter(o => !MOCK_OFFER_IDS.has(o.id));
-
-    if (cleanRemote.length === 0) {
-      return cleanLocal;
-    }
-
-    const map = new Map<string, Offer>();
-    for (const o of cleanLocal) map.set(o.id, o);
-    for (const o of cleanRemote) map.set(o.id, o);
-    return Array.from(map.values());
+    return deduplicateOffers(cleanLocal);
   },
 
   async saveOffer(offer: Offer, performedBy: string): Promise<Offer> {
@@ -833,11 +927,12 @@ export const StorageService = {
     if (this.isUsingFirebase()) {
       try {
         await setDoc(doc(db!, 'offers', updatedOffer.id), updatedOffer, { merge: true });
-      } catch (err) {
-        console.warn('Firebase saveOffer failed', err);
+      } catch (err: any) {
+        console.error('Firebase saveOffer failed', err);
+        throw new Error(err?.message || 'Failed to save offer to database.');
       }
     }
-    const list = this.getLocal<Offer[]>(STORAGE_KEYS.OFFERS, SEED_OFFERS);
+    const list = this.getLocal<Offer[]>(STORAGE_KEYS.OFFERS, []);
     const idx = list.findIndex(o => o.id === updatedOffer.id);
     if (idx >= 0) {
       list[idx] = updatedOffer;
@@ -862,11 +957,12 @@ export const StorageService = {
     if (this.isUsingFirebase()) {
       try {
         await deleteDoc(doc(db!, 'offers', offerId));
-      } catch (err) {
-        console.warn('Firebase deleteOffer failed', err);
+      } catch (err: any) {
+        console.error('Firebase deleteOffer failed', err);
+        throw new Error(err?.message || 'Failed to delete offer from database.');
       }
     }
-    const list = this.getLocal<Offer[]>(STORAGE_KEYS.OFFERS, SEED_OFFERS);
+    const list = this.getLocal<Offer[]>(STORAGE_KEYS.OFFERS, []);
     this.setLocal(STORAGE_KEYS.OFFERS, list.filter(o => o.id !== offerId));
 
     await this.recordAuditLog({
@@ -1000,10 +1096,3 @@ export const StorageService = {
     return settings;
   }
 };
-
-// Automatically seed Cloud Firestore in the background on startup if empty
-if (typeof window !== 'undefined' && import.meta.env.MODE !== 'test') {
-  setTimeout(() => {
-    StorageService.autoSeedIfEmpty().catch(() => {});
-  }, 1000);
-}

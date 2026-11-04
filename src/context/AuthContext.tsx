@@ -22,7 +22,6 @@ interface AuthContextType {
   isAdmin: boolean;
   loginWithEmail: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
-  loginDevAdmin: (pass: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
 }
 
@@ -32,7 +31,6 @@ const AuthContext = createContext<AuthContextType>({
   isAdmin: false,
   loginWithEmail: async () => ({ success: false }),
   loginWithGoogle: async () => ({ success: false }),
-  loginDevAdmin: async () => ({ success: false }),
   logout: async () => {},
 });
 
@@ -144,32 +142,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  /**
-   * Secure local administrative verification for testing & initial setup.
-   * Uses verified passcode hash comparison.
-   */
-  const loginDevAdmin = async (passcode: string) => {
-    // Standard setup passcode: 'Vidisha@Admin2026'
-    if (passcode === 'Vidisha@Admin2026' || passcode === 'admin123') {
-      const adminData: AdminUser = {
-        uid: 'admin-local-01',
-        email: 'admin@vidishacity.in',
-        role: 'admin',
-        name: 'Vidisha Portal Administrator',
-      };
-      const session = {
-        user: adminData,
-        role: 'admin',
-        expiry: Date.now() + 1000 * 60 * 60 * 24, // 24 hours session
-      };
-      localStorage.setItem(LOCAL_ADMIN_KEY, JSON.stringify(session));
-      setCurrentUser(adminData);
-      return { success: true };
-    } else {
-      return { success: false, error: 'Invalid administrative passcode. Please verify.' };
-    }
-  };
-
   const logout = async () => {
     if (isFirebaseConfigured && auth) {
       await signOut(auth);
@@ -186,7 +158,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdmin: currentUser?.role === 'admin' || currentUser?.role === 'superadmin',
         loginWithEmail,
         loginWithGoogle,
-        loginDevAdmin,
         logout,
       }}
     >

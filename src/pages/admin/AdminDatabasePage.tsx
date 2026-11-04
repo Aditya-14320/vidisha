@@ -143,9 +143,10 @@ export const AdminDatabasePage: React.FC = () => {
     setSyncing(true);
     setMessage(null);
     try {
-      const res = await StorageService.syncSeedToFirestore();
+      const res = await StorageService.syncFirestoreLive();
       if (res.success) {
-        setMessage({ text: `Cloud Firestore successfully synced! (${res.count} documents published).`, type: 'success' });
+        setMessage({ text: `Cloud Firestore successfully verified and synchronized (${res.count} live documents in database).`, type: 'success' });
+        await loadData();
       } else {
         setMessage({ text: res.error || 'Firestore sync encountered an error.', type: 'error' });
       }
@@ -153,6 +154,40 @@ export const AdminDatabasePage: React.FC = () => {
       setMessage({ text: 'Cloud sync error: ' + err.message, type: 'error' });
     } finally {
       setSyncing(false);
+    }
+  };
+
+  const [clearing, setClearing] = useState(false);
+
+  const handleClearAllFirebase = async () => {
+    const confirmation = window.prompt(
+      'DANGER: This will delete ALL data from Cloud Firestore (businesses, categories, offers, applications, payments, banners, etc.). Type "DELETE ALL" to confirm:'
+    );
+    if (confirmation !== 'DELETE ALL') {
+      alert('Action canceled. Input did not match "DELETE ALL".');
+      return;
+    }
+
+    setClearing(true);
+    setMessage(null);
+    try {
+      const res = await StorageService.clearAllFirebaseData();
+      if (res.success) {
+        setMessage({
+          text: `Successfully wiped all data from Cloud Firestore (${res.count} documents deleted).`,
+          type: 'success'
+        });
+        await loadData();
+      } else {
+        setMessage({
+          text: res.error || 'Failed to clear Firestore data.',
+          type: 'error'
+        });
+      }
+    } catch (err: any) {
+      setMessage({ text: 'Error clearing Firebase: ' + err.message, type: 'error' });
+    } finally {
+      setClearing(false);
     }
   };
 
@@ -205,12 +240,22 @@ export const AdminDatabasePage: React.FC = () => {
 
           <button
             onClick={handleSyncToFirestore}
-            disabled={syncing}
+            disabled={syncing || clearing}
             className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm flex items-center space-x-1.5 disabled:opacity-50"
             title="Sync all local data to Cloud Firestore"
           >
             <CloudUpload className="w-3.5 h-3.5" />
             <span>{syncing ? 'Syncing...' : 'Sync to Firestore'}</span>
+          </button>
+
+          <button
+            onClick={handleClearAllFirebase}
+            disabled={clearing || syncing}
+            className="px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-sm flex items-center space-x-1.5 disabled:opacity-50"
+            title="Delete all documents from Cloud Firestore"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>{clearing ? 'Deleting...' : 'Delete All Data from Firebase'}</span>
           </button>
         </div>
       </div>

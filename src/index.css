@@ -21,6 +21,44 @@
   }
 }
 
+/* Ensure form controls behave consistently with clean borders & padding */
+select {
+  height: 2.5rem;
+  line-height: 1.25rem;
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+select option {
+  background-color: #ffffff;
+  color: #0f172a;
+  padding: 8px 12px;
+}
+
+/* Dark theme select inputs (public website) */
+.dark-select,
+.bg-dark-900 select,
+.bg-dark-950 select {
+  background-color: #18181b;
+  color: #ffffff;
+}
+.dark-select option,
+.bg-dark-900 select option,
+.bg-dark-950 select option {
+  background-color: #18181b;
+  color: #ffffff;
+}
+
+/* Common focus ring */
+.focus-ring {
+  outline: none;
+}
+.focus-ring:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
 /* Hide scrollbar for clean horizontal pill scrolling */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
