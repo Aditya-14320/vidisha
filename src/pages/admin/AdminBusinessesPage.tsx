@@ -547,21 +547,7 @@ export const AdminBusinessesPage: React.FC = () => {
                     />
                   </div>
 
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Price Range</label>
-                    <select
-                      value={editingBiz.priceRange || '₹₹'}
-                      onChange={(e) => setEditingBiz({ ...editingBiz, priceRange: e.target.value as any })}
-                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus-ring bg-white"
-                    >
-                      <option value="₹">₹ - Budget / Affordable</option>
-                      <option value="₹₹">₹₹ - Moderate / Family</option>
-                      <option value="₹₹₹">₹₹₹ - Premium</option>
-                      <option value="₹₹₹₹">₹₹₹₹ - Luxury</option>
-                    </select>
-                  </div>
-
-                  <div>
+                  <div className="sm:col-span-2">
                     <label className="block font-bold text-slate-700 mb-1">Custom URL Slug (Optional)</label>
                     <input
                       type="text"
