@@ -559,7 +559,7 @@ export const StorageService = {
     this.setLocal(STORAGE_KEYS.BUSINESSES, deduplicated);
 
     if (updatedBusiness.locality) {
-      this.addCustomLocality(updatedBusiness.locality);
+      await this.addCustomLocality(updatedBusiness.locality);
     }
     return updatedBusiness;
   },
@@ -1128,7 +1128,23 @@ export const StorageService = {
 
   // ---------------- LOCALITIES ----------------
   async getLocalities(): Promise<string[]> {
-    const custom = this.getLocal<string[]>(STORAGE_KEYS.LOCALITIES, []);
+    const customLocal = this.getLocal<string[]>(STORAGE_KEYS.LOCALITIES, []);
+    const firestoreLocalities: string[] = [];
+
+    if (this.isUsingFirebase()) {
+      try {
+        const snap = await getDocs(collection(db!, 'localities'));
+        snap.forEach(d => {
+          const data = d.data();
+          if (data?.name && typeof data.name === 'string') {
+            firestoreLocalities.push(data.name.trim());
+          }
+        });
+      } catch (err) {
+        console.warn('Failed to fetch localities from Firestore:', err);
+      }
+    }
+
     let bizLocalities: string[] = [];
     try {
       const businesses = await this.getBusinesses();
@@ -1137,33 +1153,81 @@ export const StorageService = {
       // fallback
     }
 
-    const uniqueSet = new Set<string>();
-    // Add default localities (except Other / Outskirts)
-    DEFAULT_VIDISHA_LOCALITIES.forEach(loc => {
-      if (loc && loc !== 'Other / Outskirts') uniqueSet.add(loc);
-    });
-    // Add custom added localities
-    custom.forEach(loc => {
-      if (loc && loc !== 'Other / Outskirts') uniqueSet.add(loc);
-    });
-    // Add localities from any existing businesses
-    bizLocalities.forEach(loc => {
-      if (loc && loc !== 'Other / Outskirts') uniqueSet.add(loc);
-    });
+    const uniqueMap = new Map<string, string>(); // lowercased -> canonical display name
+    const registerLocality = (name: string) => {
+      const trimmed = (name || '').trim();
+      if (!trimmed || trimmed.toLowerCase() === 'other / outskirts') return;
+      const lower = trimmed.toLowerCase();
+      if (!uniqueMap.has(lower)) {
+        uniqueMap.set(lower, trimmed);
+      }
+    };
 
-    const sorted = Array.from(uniqueSet).sort((a, b) => a.localeCompare(b));
+    // 1. Add default predefined localities
+    DEFAULT_VIDISHA_LOCALITIES.forEach(registerLocality);
+
+    // 2. Add Firestore-persisted custom localities
+    firestoreLocalities.forEach(registerLocality);
+
+    // 3. Add local-storage custom localities
+    customLocal.forEach(registerLocality);
+
+    // 4. Add localities from existing businesses
+    bizLocalities.forEach(registerLocality);
+
+    const sorted = Array.from(uniqueMap.values()).sort((a, b) => a.localeCompare(b));
     sorted.push('Other / Outskirts');
+
+    // Update local cache
+    const customNames = sorted.filter(l => !DEFAULT_VIDISHA_LOCALITIES.includes(l));
+    this.setLocal(STORAGE_KEYS.LOCALITIES, customNames);
+
     return sorted;
   },
 
-  addCustomLocality(name: string): string {
+  async addCustomLocality(name: string): Promise<{ success: boolean; name: string; alreadyExisted: boolean }> {
     const clean = (name || '').trim();
-    if (!clean || clean.toLowerCase() === 'other / outskirts') return clean;
-    const existing = this.getLocal<string[]>(STORAGE_KEYS.LOCALITIES, []);
-    if (!existing.some(l => l.toLowerCase() === clean.toLowerCase())) {
-      existing.push(clean);
-      this.setLocal(STORAGE_KEYS.LOCALITIES, existing);
+    if (!clean || clean.toLowerCase() === 'other / outskirts') {
+      return { success: false, name: clean, alreadyExisted: false };
     }
-    return clean;
+
+    const currentLocalities = await this.getLocalities();
+    const existingMatch = currentLocalities.find(l => l.toLowerCase() === clean.toLowerCase());
+    if (existingMatch) {
+      return { success: true, name: existingMatch, alreadyExisted: true };
+    }
+
+    // Persist permanently in Firebase Firestore
+    if (this.isUsingFirebase()) {
+      try {
+        const slug = clean.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `loc-${Date.now()}`;
+        await setDoc(doc(db!, 'localities', slug), {
+          id: slug,
+          name: clean,
+          isCustom: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      } catch (err) {
+        console.warn('Failed to save locality in Firestore, saved locally:', err);
+      }
+    }
+
+    // Persist in local storage
+    const custom = this.getLocal<string[]>(STORAGE_KEYS.LOCALITIES, []);
+    if (!custom.some(l => l.toLowerCase() === clean.toLowerCase())) {
+      custom.push(clean);
+      this.setLocal(STORAGE_KEYS.LOCALITIES, custom);
+    }
+
+    await this.recordAuditLog({
+      action: 'LOCALITY_CREATED',
+      performedBy: 'Admin',
+      targetType: 'settings',
+      targetId: clean,
+      details: { locality: clean }
+    });
+
+    return { success: true, name: clean, alreadyExisted: false };
   }
 };

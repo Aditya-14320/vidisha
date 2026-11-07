@@ -158,12 +158,57 @@ describe('Business Directory Queries & Application Submissions', () => {
     }
   });
 
-  it('adds custom locality and retrieves updated localities list', async () => {
+  it('adds custom locality, prevents duplicates, and retrieves updated localities list', async () => {
     const newLocality = 'Mukharji Nagar Colony';
-    StorageService.addCustomLocality(newLocality);
+    const firstAdd = await StorageService.addCustomLocality(newLocality);
+    expect(firstAdd.success).toBe(true);
+    expect(firstAdd.alreadyExisted).toBe(false);
+
+    // Attempting to add same locality case-insensitively should be prevented as duplicate
+    const duplicateAdd = await StorageService.addCustomLocality('mukharji nagar colony');
+    expect(duplicateAdd.success).toBe(true);
+    expect(duplicateAdd.alreadyExisted).toBe(true);
 
     const localities = await StorageService.getLocalities();
     expect(localities).toContain(newLocality);
+    // Count occurrences of newLocality - must be exactly 1
+    const count = localities.filter(l => l.toLowerCase() === newLocality.toLowerCase()).length;
+    expect(count).toBe(1);
     expect(localities[localities.length - 1]).toBe('Other / Outskirts');
+  });
+
+  it('saves and preserves short and long Google Maps URLs on business listings', async () => {
+    const shortMapUrl = 'https://maps.app.goo.gl/kXz99xyz';
+    const biz = await StorageService.saveBusiness({
+      id: 'biz-test-maps',
+      name: 'Vidisha Maps Cafe',
+      slug: 'vidisha-maps-cafe',
+      categoryId: 'cat-restaurants',
+      categoryName: 'Restaurants and Cafes',
+      categorySlug: 'restaurants-and-cafes',
+      description: 'Cafe with verified maps link',
+      phone: '9826011111',
+      whatsapp: '9826011111',
+      address: 'Near Station Road, Vidisha',
+      locality: 'Station Road',
+      mapUrl: shortMapUrl,
+      gallery: [],
+      services: ['Coffee'],
+      priceRange: '₹₹',
+      approvalStatus: 'approved',
+      paymentStatus: 'paid',
+      packageId: 'complete',
+      isTop10: false,
+      isSponsored: false,
+      viewCount: 0,
+      clickCount: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    expect(biz.mapUrl).toBe(shortMapUrl);
+
+    const fetched = await StorageService.getBusinessByIdOrSlug('biz-test-maps');
+    expect(fetched?.mapUrl).toBe(shortMapUrl);
   });
 });

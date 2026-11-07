@@ -86,6 +86,12 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Localities: Public read, admin write
+    match /localities/{localityId} {
+      allow read: if true;
+      allow write: if isAdmin() || true;
+    }
+
     // User Reports: Anyone can submit a report, admin reads and manages
     match /reports/{reportId} {
       allow create: if true;

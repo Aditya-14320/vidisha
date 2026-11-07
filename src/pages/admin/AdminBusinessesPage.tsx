@@ -43,6 +43,9 @@ export const AdminBusinessesPage: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [localities, setLocalities] = useState<string[]>(DEFAULT_VIDISHA_LOCALITIES);
   const [isAddingLocality, setIsAddingLocality] = useState(false);
+  const [showAddLocalityModal, setShowAddLocalityModal] = useState(false);
+  const [savingLocality, setSavingLocality] = useState(false);
+  const [localityError, setLocalityError] = useState('');
   const [newLocalityInput, setNewLocalityInput] = useState('');
 
   const loadData = async () => {
@@ -141,22 +144,56 @@ export const AdminBusinessesPage: React.FC = () => {
     setNewLocalityInput('');
   };
 
-  const handleAddNewLocality = () => {
+  const handleAddNewLocality = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     const trimmed = newLocalityInput.trim();
-    if (!trimmed) return;
-    StorageService.addCustomLocality(trimmed);
-    setLocalities(prev => {
-      if (prev.some(l => l.toLowerCase() === trimmed.toLowerCase())) {
-        return prev;
-      }
-      const withoutOther = prev.filter(l => l !== 'Other / Outskirts');
-      return [...withoutOther, trimmed, 'Other / Outskirts'];
-    });
-    if (editingBiz) {
-      setEditingBiz({ ...editingBiz, locality: trimmed });
+    if (!trimmed) {
+      setLocalityError('Please enter a locality name.');
+      return;
     }
-    setIsAddingLocality(false);
-    setNewLocalityInput('');
+
+    // Check duplicate case-insensitively
+    const existing = localities.find(l => l.toLowerCase() === trimmed.toLowerCase());
+    if (existing) {
+      setLocalityError(`"${existing}" already exists. It has been selected for this listing.`);
+      if (editingBiz) {
+        setEditingBiz({ ...editingBiz, locality: existing });
+      }
+      setTimeout(() => {
+        setShowAddLocalityModal(false);
+        setIsAddingLocality(false);
+        setNewLocalityInput('');
+        setLocalityError('');
+      }, 1200);
+      return;
+    }
+
+    setSavingLocality(true);
+    setLocalityError('');
+    try {
+      const res = await StorageService.addCustomLocality(trimmed);
+      const canonicalName = res.name;
+      setLocalities(prev => {
+        if (prev.some(l => l.toLowerCase() === canonicalName.toLowerCase())) {
+          return prev;
+        }
+        const withoutOther = prev.filter(l => l !== 'Other / Outskirts');
+        const updated = [...withoutOther, canonicalName].sort((a, b) => a.localeCompare(b));
+        return [...updated, 'Other / Outskirts'];
+      });
+
+      if (editingBiz) {
+        setEditingBiz(prev => prev ? { ...prev, locality: canonicalName } : null);
+      }
+      setMessage({ text: `Locality "${canonicalName}" saved permanently in Firebase database.`, type: 'success' });
+      setShowAddLocalityModal(false);
+      setIsAddingLocality(false);
+      setNewLocalityInput('');
+    } catch (err: any) {
+      setLocalityError(err?.message || 'Failed to save locality.');
+    } finally {
+      setSavingLocality(false);
+    }
   };
 
   const handleSaveEdit = async (e: React.FormEvent) => {
@@ -172,6 +209,11 @@ export const AdminBusinessesPage: React.FC = () => {
         .filter(Boolean);
       const gallery = [photo1, photo2, photo3].map(p => p.trim()).filter(Boolean);
 
+      let formattedMapUrl = (editingBiz.mapUrl || '').trim();
+      if (formattedMapUrl && !formattedMapUrl.startsWith('http://') && !formattedMapUrl.startsWith('https://')) {
+        formattedMapUrl = 'https://' + formattedMapUrl;
+      }
+
       // Synchronize category details
       const cat = categories.find(c => c.id === editingBiz.categoryId);
 
@@ -183,6 +225,7 @@ export const AdminBusinessesPage: React.FC = () => {
         services,
         gallery,
         coverImageUrl: editingBiz.coverImageUrl || gallery[0] || '',
+        mapUrl: formattedMapUrl || undefined,
         updatedAt: new Date().toISOString(),
       };
 
@@ -539,79 +582,39 @@ export const AdminBusinessesPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          setIsAddingLocality(!isAddingLocality);
+                          setShowAddLocalityModal(true);
                           setNewLocalityInput('');
+                          setLocalityError('');
                         }}
                         className="text-[11px] font-bold text-blue-600 hover:text-blue-800 flex items-center space-x-1 transition-colors"
                       >
                         <Plus className="w-3 h-3" />
-                        <span>{isAddingLocality ? 'Select Existing' : 'Add New Location'}</span>
+                        <span>Add New Location</span>
                       </button>
                     </div>
 
-                    {!isAddingLocality ? (
-                      <select
-                        value={editingBiz.locality}
-                        onChange={(e) => {
-                          if (e.target.value === '__add_new__') {
-                            setIsAddingLocality(true);
-                            setNewLocalityInput('');
-                          } else {
-                            setEditingBiz({ ...editingBiz, locality: e.target.value });
-                          }
-                        }}
-                        className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus-ring bg-white"
-                      >
-                        {localities.map((loc) => (
-                          <option key={loc} value={loc}>
-                            {loc}
-                          </option>
-                        ))}
-                        <option value="__add_new__" className="font-bold text-blue-600 bg-blue-50">
-                          + Add New Location...
+                    <select
+                      value={editingBiz.locality}
+                      onChange={(e) => {
+                        if (e.target.value === '__add_new__') {
+                          setShowAddLocalityModal(true);
+                          setNewLocalityInput('');
+                          setLocalityError('');
+                        } else {
+                          setEditingBiz({ ...editingBiz, locality: e.target.value });
+                        }
+                      }}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus-ring bg-white"
+                    >
+                      {localities.map((loc) => (
+                        <option key={loc} value={loc}>
+                          {loc}
                         </option>
-                      </select>
-                    ) : (
-                      <div className="space-y-1.5">
-                        <div className="flex items-center space-x-1.5">
-                          <input
-                            type="text"
-                            autoFocus
-                            value={newLocalityInput}
-                            onChange={(e) => setNewLocalityInput(e.target.value)}
-                            placeholder="Type new locality name..."
-                            className="w-full px-3 py-2 text-xs rounded-xl border border-blue-400 focus-ring bg-white"
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                handleAddNewLocality();
-                              }
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={handleAddNewLocality}
-                            className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm shrink-0"
-                          >
-                            Add
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setIsAddingLocality(false);
-                              setNewLocalityInput('');
-                            }}
-                            className="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 shrink-0"
-                            title="Cancel"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                        <p className="text-[10px] text-slate-500">
-                          Click "Add" or press Enter to add and select this new locality.
-                        </p>
-                      </div>
-                    )}
+                      ))}
+                      <option value="__add_new__" className="font-bold text-blue-600 bg-blue-50">
+                        + Add New Location
+                      </option>
+                    </select>
                   </div>
 
                   <div className="sm:col-span-2">
@@ -628,18 +631,18 @@ export const AdminBusinessesPage: React.FC = () => {
 
                   <div className="sm:col-span-2">
                     <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
-                      <span>Google Maps Link (Optional)</span>
-                      <span className="text-[10px] font-normal text-slate-500">e.g. maps.app.goo.gl/... or maps.google.com/?q=...</span>
+                      <span>Google Maps Location Link</span>
+                      <span className="text-[11px] font-normal text-slate-400">(Optional)</span>
                     </label>
                     <input
                       type="url"
                       value={editingBiz.mapUrl || ''}
                       onChange={(e) => setEditingBiz({ ...editingBiz, mapUrl: e.target.value })}
-                      placeholder="https://maps.app.goo.gl/... or Google Maps share link"
+                      placeholder="Paste Google Maps share link here"
                       className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus-ring"
                     />
-                    <p className="text-[10px] text-slate-500 mt-0.5">
-                      Direct Google Maps location URL for customer navigation and directions.
+                    <p className="text-[11px] text-slate-500 mt-1">
+                      Open Google Maps → Select your business location → Share → Copy link.
                     </p>
                   </div>
 
@@ -924,6 +927,90 @@ export const AdminBusinessesPage: React.FC = () => {
                 >
                   <Save className="w-4 h-4" />
                   <span>{saving ? 'Saving...' : (isNew ? 'Create Business' : 'Save Changes')}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add New Locality Modal */}
+      {showAddLocalityModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl relative border border-slate-200 admin-modal text-slate-900">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center space-x-2">
+                <MapPin className="w-4 h-4 text-blue-600" />
+                <span>Add New Location in Vidisha</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAddLocalityModal(false);
+                  setNewLocalityInput('');
+                  setLocalityError('');
+                }}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+              Enter the new locality or neighborhood name. It will be saved permanently in Firebase Firestore and automatically selected for this business.
+            </p>
+
+            {localityError && (
+              <div className="mb-3.5 p-2.5 rounded-xl bg-red-50 text-red-700 text-xs flex items-center space-x-2 border border-red-200">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                <span>{localityError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleAddNewLocality} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Locality Name *
+                </label>
+                <input
+                  type="text"
+                  autoFocus
+                  required
+                  value={newLocalityInput}
+                  onChange={(e) => {
+                    setNewLocalityInput(e.target.value);
+                    setLocalityError('');
+                  }}
+                  placeholder="e.g. Mukharji Nagar, Shastri Nagar"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus-ring"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddLocalityModal(false);
+                    setNewLocalityInput('');
+                    setLocalityError('');
+                  }}
+                  className="px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingLocality || !newLocalityInput.trim()}
+                  className="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md disabled:opacity-50 flex items-center space-x-1"
+                >
+                  {savingLocality ? (
+                    <span>Saving...</span>
+                  ) : (
+                    <>
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Save Location</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

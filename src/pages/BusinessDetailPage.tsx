@@ -13,7 +13,8 @@ import {
   Tag,
   Sparkles,
   Globe,
-  Star
+  Star,
+  Navigation
 } from 'lucide-react';
 import { Business, Offer } from '../types';
 import { BusinessService } from '../services/businessService';
@@ -256,6 +257,16 @@ export const BusinessDetailPage: React.FC = () => {
                   <span>WhatsApp Inquiry</span>
                 </a>
               )}
+
+              <a
+                href={business.mapUrl || `https://maps.google.com/?q=${encodeURIComponent(`${business.name} ${business.locality} Vidisha`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-5 py-3 rounded-full bg-[#1c1c24] border border-gold-500/40 text-gold-300 hover:bg-[#252530] font-semibold text-sm shadow-sm flex items-center justify-center space-x-2 transition-all active:scale-95"
+              >
+                <Navigation className="w-4 h-4 text-gold-400" />
+                <span>Get Directions</span>
+              </a>
             </div>
           </div>
         </div>
@@ -377,11 +388,12 @@ export const BusinessDetailPage: React.FC = () => {
             <a
               href={business.mapUrl || `https://maps.google.com/?q=${encodeURIComponent(`${business.name} ${business.locality} Vidisha`)}`}
               target="_blank"
-              rel="noreferrer"
-              className="w-full py-2.5 px-4 rounded-full bg-[#1d1d24] hover:bg-[#252530] text-gold-400 font-semibold text-xs flex items-center justify-center space-x-2 transition-colors border border-[#2e2e38] hover:border-gold-500/40"
+              rel="noopener noreferrer"
+              className="w-full py-3 px-4 rounded-full bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-400 hover:to-gold-500 text-dark-950 font-bold text-xs flex items-center justify-center space-x-2 transition-all shadow-md active:scale-95"
             >
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span>Open in Google Maps</span>
+              <Navigation className="w-3.5 h-3.5 text-dark-950" />
+              <span>Get Directions</span>
+              <ExternalLink className="w-3.5 h-3.5 text-dark-950/80 ml-0.5" />
             </a>
           </div>
 

@@ -92,18 +92,20 @@ export const ListBusinessPage: React.FC = () => {
       .catch(console.warn);
   }, []);
 
-  const handleAddNewLocality = () => {
+  const handleAddNewLocality = async () => {
     const trimmed = newLocalityInput.trim();
     if (!trimmed) return;
-    StorageService.addCustomLocality(trimmed);
+    const res = await StorageService.addCustomLocality(trimmed);
+    const canonicalName = res.name;
     setLocalities(prev => {
-      if (prev.some(l => l.toLowerCase() === trimmed.toLowerCase())) {
+      if (prev.some(l => l.toLowerCase() === canonicalName.toLowerCase())) {
         return prev;
       }
       const withoutOther = prev.filter(l => l !== 'Other / Outskirts');
-      return [...withoutOther, trimmed, 'Other / Outskirts'];
+      const updated = [...withoutOther, canonicalName].sort((a, b) => a.localeCompare(b));
+      return [...updated, 'Other / Outskirts'];
     });
-    setFormData(prev => ({ ...prev, locality: trimmed }));
+    setFormData(prev => ({ ...prev, locality: canonicalName }));
     setIsAddingLocality(false);
     setNewLocalityInput('');
   };
@@ -179,6 +181,11 @@ export const ListBusinessPage: React.FC = () => {
         .map((p) => p.trim())
         .filter(Boolean);
 
+      let formattedMapUrl = formData.mapUrl.trim();
+      if (formattedMapUrl && !formattedMapUrl.startsWith('http://') && !formattedMapUrl.startsWith('https://')) {
+        formattedMapUrl = 'https://' + formattedMapUrl;
+      }
+
       const res = await ApplicationService.submitApplication({
         businessName: formData.businessName.trim(),
         ownerName: formData.ownerName.trim(),
@@ -188,7 +195,7 @@ export const ListBusinessPage: React.FC = () => {
         categoryId: formData.categoryId,
         locality: formData.locality,
         address: formData.address.trim(),
-        mapUrl: formData.mapUrl.trim() || undefined,
+        mapUrl: formattedMapUrl || undefined,
         description: formData.description.trim(),
         services,
         openingHours: formData.openingHours.trim(),
@@ -731,19 +738,19 @@ export const ListBusinessPage: React.FC = () => {
 
                 <div className="sm:col-span-3">
                   <label className="block text-xs font-bold text-[#d4d4d8] mb-1 flex items-center justify-between">
-                    <span>Google Maps Link (Optional)</span>
-                    <span className="text-[10px] font-normal text-gold-400">e.g. maps.app.goo.gl/...</span>
+                    <span>Google Maps Location Link</span>
+                    <span className="text-[10px] font-normal text-gold-400">(Optional)</span>
                   </label>
                   <input
                     type="url"
                     name="mapUrl"
                     value={formData.mapUrl}
                     onChange={handleChange}
-                    placeholder="https://maps.app.goo.gl/... or Google Maps share link"
+                    placeholder="Paste Google Maps share link here"
                     className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#1c1c22] text-white placeholder-[#71717a]"
                   />
                   <p className="text-[11px] text-[#71717a] mt-1 font-light">
-                    Paste your Google Maps location URL so customers can navigate directly to your shop or office with 1 click.
+                    Open Google Maps → Select your business location → Share → Copy link.
                   </p>
                 </div>
               </div>
