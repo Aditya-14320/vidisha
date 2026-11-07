@@ -93,11 +93,10 @@ export const SearchBanner: React.FC<SearchBannerProps> = ({ categories }) => {
   };
 
   const topSearches = [
-    { label: 'Station Road', icon: '🏛️' },
-    { label: 'Sweets & Namkeen', icon: '🎁' },
-    { label: 'Chanderi Sarees', icon: '👗' },
-    { label: 'Mobile Repair', icon: '📱' },
-    { label: 'Dentists', icon: '🦷' }
+    { label: 'Restaurant', icon: '🍽️', categorySlug: 'restaurants-and-cafes', categoryId: 'cat-restaurants' },
+    { label: 'Coaching', icon: '📚', categorySlug: 'coaching-centres', categoryId: 'cat-coaching' },
+    { label: 'Doctors', icon: '🩺', categorySlug: 'doctors-and-dentists', categoryId: 'cat-doctors' },
+    { label: 'Gym', icon: '💪', categorySlug: 'gyms-and-fitness', categoryId: 'cat-gyms' }
   ];
 
   return (
@@ -264,9 +263,14 @@ export const SearchBanner: React.FC<SearchBannerProps> = ({ categories }) => {
               key={item.label}
               type="button"
               onClick={() => {
-                setQuery(item.label);
-                const params = new URLSearchParams({ q: item.label });
-                navigate(`/search?${params.toString()}`);
+                const matched = categories.find(c => c.id === item.categoryId || c.slug === item.categorySlug);
+                if (matched) {
+                  navigate(`/category/${matched.slug}`);
+                } else {
+                  setQuery(item.label);
+                  const params = new URLSearchParams({ q: item.label });
+                  navigate(`/search?${params.toString()}`);
+                }
               }}
               className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-[#18181c] hover:bg-[#222228] text-white border border-[#2e2e34] hover:border-gold-500/40 transition-all duration-200 text-xs font-medium shadow-sm active:scale-95"
             >
