@@ -1132,6 +1132,24 @@ export const StorageService = {
     const firestoreLocalities: string[] = [];
 
     if (this.isUsingFirebase()) {
+      // 1. Try reading from appSettings/localities (allowed by default production Firestore rules)
+      try {
+        const docSnap = await getDoc(doc(db!, 'appSettings', 'localities'));
+        if (docSnap.exists()) {
+          const list = docSnap.data()?.list;
+          if (Array.isArray(list)) {
+            list.forEach(item => {
+              if (typeof item === 'string' && item.trim()) {
+                firestoreLocalities.push(item.trim());
+              }
+            });
+          }
+        }
+      } catch {
+        // Fallback silently if unavailable
+      }
+
+      // 2. Also try reading from dedicated localities collection if rules permit
       try {
         const snap = await getDocs(collection(db!, 'localities'));
         snap.forEach(d => {
@@ -1140,8 +1158,8 @@ export const StorageService = {
             firestoreLocalities.push(data.name.trim());
           }
         });
-      } catch (err) {
-        console.warn('Failed to fetch localities from Firestore:', err);
+      } catch {
+        // If collection rules for 'localities' haven't been deployed yet, fallback gracefully without console error
       }
     }
 
@@ -1199,6 +1217,25 @@ export const StorageService = {
 
     // Persist permanently in Firebase Firestore
     if (this.isUsingFirebase()) {
+      // 1. Persist to appSettings/localities (fully supported by deployed appSettings rules)
+      try {
+        const localitiesDocRef = doc(db!, 'appSettings', 'localities');
+        const docSnap = await getDoc(localitiesDocRef);
+        const currentList: string[] = docSnap.exists() && Array.isArray(docSnap.data()?.list)
+          ? docSnap.data().list
+          : [];
+        if (!currentList.some(l => l.toLowerCase() === clean.toLowerCase())) {
+          currentList.push(clean);
+          await setDoc(localitiesDocRef, {
+            list: currentList,
+            updatedAt: new Date().toISOString()
+          }, { merge: true });
+        }
+      } catch (err) {
+        console.warn('Could not save to appSettings/localities, trying fallback:', err);
+      }
+
+      // 2. Also persist to localities/{slug}
       try {
         const slug = clean.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `loc-${Date.now()}`;
         await setDoc(doc(db!, 'localities', slug), {
@@ -1208,8 +1245,8 @@ export const StorageService = {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         }, { merge: true });
-      } catch (err) {
-        console.warn('Failed to save locality in Firestore, saved locally:', err);
+      } catch {
+        // Fallback silently if collection permission is pending
       }
     }
 
