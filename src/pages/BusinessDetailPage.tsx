@@ -14,7 +14,9 @@ import {
   Sparkles,
   Globe,
   Star,
-  Navigation
+  Navigation,
+  Maximize2,
+  X
 } from 'lucide-react';
 import { Business, Offer } from '../types';
 import { BusinessService } from '../services/businessService';
@@ -23,12 +25,14 @@ import { ReportModal } from '../components/business/ReportModal';
 import { OfferCard } from '../components/business/OfferCard';
 import { SEOHead } from '../components/seo/SEOHead';
 import { buildLocalBusinessSchema } from '../utils/schemaGenerator';
+import { getOptimizedImageUrl, getResponsiveSrcSet } from '../utils/imageOptimizer';
 
 export const BusinessDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [business, setBusiness] = useState<Business | null>(null);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -151,54 +155,107 @@ export const BusinessDetailPage: React.FC = () => {
 
       {/* Main Cover & Gallery Section */}
       <div className="bg-[#141417] rounded-3xl border border-[#26262e] overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.6)] mb-8">
-        <div className="relative h-64 sm:h-96 w-full bg-[#1b1b22]">
-          <img
-            src={selectedPhoto || business.coverImageUrl || 'https://images.unsplash.com/photo-1548013146-72479768bada?w=1200&auto=format&fit=crop&q=80'}
-            alt={business.name}
-            className="w-full h-full object-cover transition-opacity duration-300"
-          />
-          {/* Ambient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#141417] via-transparent to-black/30" />
+        {(() => {
+          const currentPhoto = selectedPhoto || business.coverImageUrl || business.gallery?.[0] || 'https://images.unsplash.com/photo-1548013146-72479768bada?w=1600&auto=format&fit=crop&q=85';
+          const heroOptimized = getOptimizedImageUrl(currentPhoto, {
+            width: 1600,
+            quality: 'best',
+            format: 'auto',
+            crop: 'limit'
+          });
+          const heroSrcSet = getResponsiveSrcSet(currentPhoto, [640, 1024, 1400, 1800], {
+            quality: 'best',
+            format: 'auto',
+            crop: 'limit'
+          });
+          const ambientBlur = getOptimizedImageUrl(currentPhoto, {
+            width: 300,
+            quality: 'good',
+            format: 'auto'
+          });
 
-          {/* Badges Overlay */}
-          <div className="absolute top-4 left-4 flex flex-wrap gap-2 items-center z-10">
-            {business.packageId === 'priority' && business.paymentStatus === 'paid' && (
-              <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-gold-500 to-gold-600 text-dark-950 uppercase tracking-wider shadow-lg">
-                <Star className="w-3.5 h-3.5 fill-dark-950 text-dark-950" />
-                <span>Priority Selection</span>
-              </span>
-            )}
-            <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#1d1d24]/90 text-white border border-[#2e2e38] backdrop-blur-md shadow-md">
-              <CheckCircle2 className="w-3.5 h-3.5 text-gold-400" />
-              <span>Verified Establishment</span>
-            </span>
-          </div>
-        </div>
-
-        {/* Thumbnail Gallery Row */}
-        {business.gallery && business.gallery.length > 1 && (
-          <div className="p-3 bg-[#111114] flex items-center space-x-3 overflow-x-auto border-b border-[#24242c]">
-            {business.gallery.map((photo, index) => (
-              <button
-                key={index}
-                onClick={() => setSelectedPhoto(photo)}
-                className={`relative w-20 h-16 rounded-xl overflow-hidden shrink-0 border-2 transition-all ${
-                  selectedPhoto === photo
-                    ? 'border-gold-500 scale-105 shadow-md'
-                    : 'border-transparent opacity-60 hover:opacity-100 hover:border-[#383844]'
-                }`}
+          return (
+            <>
+              <div
+                className="relative h-64 sm:h-96 w-full bg-[#1b1b22] group cursor-zoom-in overflow-hidden"
+                onClick={() => setLightboxOpen(true)}
               >
+                {/* Ambient backdrop for smooth aspect ratio blending */}
                 <img
-                  src={photo}
-                  alt={`${business.name} - Gallery Photo ${index + 1}`}
-                  loading="lazy"
-                  decoding="async"
-                  className="w-full h-full object-cover"
+                  src={ambientBlur}
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110 pointer-events-none"
                 />
-              </button>
-            ))}
-          </div>
-        )}
+
+                {/* Main Sharp Profile Image */}
+                <img
+                  src={heroOptimized}
+                  srcSet={heroSrcSet || undefined}
+                  sizes="(max-width: 1024px) 100vw, 1200px"
+                  alt={business.name}
+                  className="relative z-10 w-full h-full object-cover transition-opacity duration-300"
+                  decoding="async"
+                />
+
+                {/* Ambient dark gradient overlay */}
+                <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#141417] via-transparent to-black/30 pointer-events-none" />
+
+                {/* Badges Overlay */}
+                <div className="absolute top-4 left-4 flex flex-wrap gap-2 items-center z-20 pointer-events-none">
+                  {business.packageId === 'priority' && business.paymentStatus === 'paid' && (
+                    <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-gold-500 to-gold-600 text-dark-950 uppercase tracking-wider shadow-lg">
+                      <Star className="w-3.5 h-3.5 fill-dark-950 text-dark-950" />
+                      <span>Priority Selection</span>
+                    </span>
+                  )}
+                  <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#1d1d24]/90 text-white border border-[#2e2e38] backdrop-blur-md shadow-md">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-gold-400" />
+                    <span>Verified Establishment</span>
+                  </span>
+                </div>
+
+                {/* View Fullscreen Photo Pill */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLightboxOpen(true);
+                  }}
+                  className="absolute bottom-4 right-4 z-20 px-3 py-1.5 rounded-full text-xs font-semibold bg-black/60 hover:bg-black/80 text-white backdrop-blur-md border border-white/20 transition-all flex items-center space-x-1.5 opacity-90 group-hover:opacity-100 shadow-lg"
+                >
+                  <Maximize2 className="w-3.5 h-3.5 text-gold-400" />
+                  <span>View Full Photo</span>
+                </button>
+              </div>
+
+              {/* Thumbnail Gallery Row */}
+              {business.gallery && business.gallery.length > 1 && (
+                <div className="p-3 bg-[#111114] flex items-center space-x-3 overflow-x-auto border-b border-[#24242c]">
+                  {business.gallery.map((photo, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedPhoto(photo)}
+                      className={`relative w-20 h-16 rounded-xl overflow-hidden shrink-0 border-2 transition-all ${
+                        (selectedPhoto === photo || (!selectedPhoto && index === 0 && !business.coverImageUrl))
+                          ? 'border-gold-500 scale-105 shadow-md'
+                          : 'border-transparent opacity-60 hover:opacity-100 hover:border-[#383844]'
+                      }`}
+                    >
+                      <img
+                        src={getOptimizedImageUrl(photo, { width: 240, height: 180, crop: 'fill', quality: 'best', format: 'auto' })}
+                        alt={`${business.name} - Gallery Photo ${index + 1}`}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+          );
+        })()}
 
         {/* Profile Header Details */}
         <div className="p-6 sm:p-8">
@@ -430,6 +487,59 @@ export const BusinessDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Fullscreen High-Resolution Lightbox Modal */}
+      {lightboxOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <button
+            type="button"
+            onClick={() => setLightboxOpen(false)}
+            className="absolute top-5 right-5 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-50"
+            title="Close photo"
+          >
+            <X className="w-6 h-6" />
+          </button>
+
+          <div
+            className="relative max-w-5xl max-h-[90vh] flex flex-col items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {(() => {
+              const fullPhoto = selectedPhoto || business.coverImageUrl || business.gallery?.[0];
+              const highResUrl = getOptimizedImageUrl(fullPhoto, {
+                width: 2000,
+                quality: 'best',
+                format: 'auto'
+              });
+
+              return (
+                <>
+                  <img
+                    src={highResUrl}
+                    alt={business.name}
+                    className="max-w-full max-h-[82vh] object-contain rounded-2xl shadow-2xl border border-white/10"
+                  />
+                  <div className="mt-3 flex items-center justify-between w-full px-2 text-xs text-slate-300">
+                    <span className="font-semibold text-white">{business.name}</span>
+                    <a
+                      href={fullPhoto || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gold-400 hover:text-gold-300 underline inline-flex items-center space-x-1"
+                    >
+                      <span>Open Original File</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        </div>
+      )}
 
       {/* Report Modal */}
       <ReportModal

@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react';
-import { Upload, X, Loader2, Image as ImageIcon, Link as LinkIcon } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Upload, X, Loader2, Link as LinkIcon, CheckCircle2, AlertTriangle, ExternalLink } from 'lucide-react';
 import { uploadToCloudinary } from '../../services/cloudinaryService';
+import { getOptimizedImageUrl } from '../../utils/imageOptimizer';
 
 interface ImageUploadInputProps {
   label?: string;
@@ -24,7 +25,21 @@ export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [showUrlInput, setShowUrlInput] = useState(false);
+  const [imageMeta, setImageMeta] = useState<{ width: number; height: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Detect image resolution when value changes
+  useEffect(() => {
+    if (!value) {
+      setImageMeta(null);
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      setImageMeta({ width: img.naturalWidth, height: img.naturalHeight });
+    };
+    img.src = value;
+  }, [value]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -33,7 +48,17 @@ export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({
     setIsUploading(true);
     setUploadError(null);
 
+    // Pre-check natural dimensions
+    const objectUrl = URL.createObjectURL(file);
+    const testImg = new Image();
+    testImg.onload = () => {
+      setImageMeta({ width: testImg.naturalWidth, height: testImg.naturalHeight });
+      URL.revokeObjectURL(objectUrl);
+    };
+    testImg.src = objectUrl;
+
     try {
+      // Direct high-resolution upload to Cloudinary (no client downsampling)
       const secureUrl = await uploadToCloudinary(file, folder);
       onChange(secureUrl);
     } catch (err: any) {
@@ -48,6 +73,7 @@ export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({
 
   const handleClear = () => {
     onChange('');
+    setImageMeta(null);
     setUploadError(null);
   };
 
@@ -76,22 +102,60 @@ export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({
       >
         {value ? (
           /* Preview state */
-          <div className="p-2 flex items-center space-x-3">
-            <div className="w-16 h-14 rounded-lg overflow-hidden bg-slate-900/10 shrink-0 border border-slate-200 dark:border-slate-700 relative group">
+          <div className="p-2.5 flex items-start space-x-3">
+            <a
+              href={value}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Click to view full original photo in new tab"
+              className="w-16 h-14 rounded-lg overflow-hidden bg-slate-900/10 shrink-0 border border-slate-200 dark:border-slate-700 relative group cursor-zoom-in block"
+            >
               <img
-                src={value}
+                src={getOptimizedImageUrl(value, { width: 160, quality: 'best', format: 'auto' })}
                 alt="Preview"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="%23999" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>';
                 }}
               />
-            </div>
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                <ExternalLink className="w-3.5 h-3.5 text-white" />
+              </div>
+            </a>
+
             <div className="flex-1 min-w-0">
-              <p className={`text-xs font-medium truncate ${darkTheme ? 'text-slate-300' : 'text-slate-700'}`}>
-                {value.includes('cloudinary.com') ? 'Uploaded to Cloudinary' : value}
-              </p>
-              <div className="flex items-center space-x-2 mt-1">
+              <div className="flex items-center space-x-1.5 flex-wrap">
+                <p className={`text-xs font-semibold truncate ${darkTheme ? 'text-slate-300' : 'text-slate-800'}`}>
+                  {value.includes('cloudinary.com') ? 'Cloudinary Hosted Photo' : 'Custom Image URL'}
+                </p>
+
+                {/* Resolution Indicator Badge */}
+                {imageMeta && (
+                  imageMeta.width >= 1000 ? (
+                    <span className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                      <CheckCircle2 className="w-2.5 h-2.5" />
+                      <span>{imageMeta.width}×{imageMeta.height} HD Sharp</span>
+                    </span>
+                  ) : imageMeta.width >= 600 ? (
+                    <span className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                      <span>{imageMeta.width}×{imageMeta.height} px</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30" title="Low resolution image: may appear pixelated when stretched on desktop. For best quality, upload at least 800×600 px.">
+                      <AlertTriangle className="w-2.5 h-2.5 text-amber-500" />
+                      <span>{imageMeta.width}×{imageMeta.height} Low Res</span>
+                    </span>
+                  )
+                )}
+              </div>
+
+              {imageMeta && imageMeta.width < 600 && (
+                <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium mt-0.5">
+                  Notice: Upload 800px+ width for crisp, non-blurry desktop display.
+                </p>
+              )}
+
+              <div className="flex items-center space-x-2 mt-1.5">
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
@@ -101,7 +165,7 @@ export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({
                   }`}
                 >
                   <Upload className="w-3 h-3" />
-                  <span>Change photo</span>
+                  <span>Change Photo</span>
                 </button>
                 <span className="text-slate-400 text-xs">•</span>
                 <button
@@ -122,7 +186,7 @@ export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({
               <div className="py-2 flex flex-col items-center justify-center space-y-1.5">
                 <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
                 <span className={`text-xs font-medium ${darkTheme ? 'text-slate-300' : 'text-slate-600'}`}>
-                  Uploading photo to Cloudinary...
+                  Uploading original high-res photo to Cloudinary...
                 </span>
               </div>
             ) : (
@@ -154,7 +218,7 @@ export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({
                   </button>
                 </div>
                 <span className="text-[10px] text-slate-400">
-                  PNG, JPG, or WebP up to 10MB
+                  PNG, JPG, or WebP up to 10MB (Preserves original quality)
                 </span>
               </div>
             )}

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { Business } from '../../types';
 import { BusinessService } from '../../services/businessService';
+import { getOptimizedImageUrl, getResponsiveSrcSet } from '../../utils/imageOptimizer';
 
 interface BusinessCardProps {
   business: Business;
@@ -46,12 +47,34 @@ export const BusinessCard: React.FC<BusinessCardProps> = ({ business, priorityBa
     >
       {/* Top Media / Header with warm ambient glow & badges matching reference screenshot */}
       <div className="relative h-48 sm:h-52 w-full bg-[#1e1e24] overflow-hidden">
-        <img
-          src={business.coverImageUrl || business.gallery[0] || 'https://images.unsplash.com/photo-1548013146-72479768bada?w=800&auto=format&fit=crop&q=80'}
-          alt={business.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-          loading="lazy"
-        />
+        {(() => {
+          const rawImage = business.coverImageUrl || business.gallery?.[0] || 'https://images.unsplash.com/photo-1548013146-72479768bada?w=800&auto=format&fit=crop&q=80';
+          const optimizedCover = getOptimizedImageUrl(rawImage, {
+            width: 800,
+            height: 520,
+            crop: 'fill',
+            quality: 'best',
+            format: 'auto'
+          });
+          const coverSrcSet = getResponsiveSrcSet(rawImage, [400, 600, 800, 1000], {
+            height: 520,
+            crop: 'fill',
+            quality: 'best',
+            format: 'auto'
+          });
+
+          return (
+            <img
+              src={optimizedCover}
+              srcSet={coverSrcSet || undefined}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              alt={business.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+              loading="lazy"
+              decoding="async"
+            />
+          );
+        })()}
 
         {/* Ambient dark gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#141417] via-transparent to-black/40" />

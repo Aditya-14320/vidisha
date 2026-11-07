@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ExternalLink, Sparkles } from 'lucide-react';
 import { Banner, BannerPlacement } from '../../types';
 import { BannerService } from '../../services/bannerService';
+import { getOptimizedImageUrl } from '../../utils/imageOptimizer';
 
 interface BannerDisplayProps {
   placement: BannerPlacement;
@@ -65,7 +66,11 @@ export const BannerDisplay: React.FC<BannerDisplayProps> = ({ placement, classNa
     <div className={`relative ${className}`}>
       {banners.map((banner) => {
         const hasValidImage = banner.imageUrl && !failedImages.has(banner.id);
-        const resolvedImageUrl = getSafeImageUrl(banner.imageUrl);
+        const resolvedImageUrl = getOptimizedImageUrl(getSafeImageUrl(banner.imageUrl), {
+          width: isHero ? 1400 : 900,
+          quality: 'best',
+          format: 'auto'
+        });
 
         return (
           <div
