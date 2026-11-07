@@ -7,8 +7,8 @@ export const CategoryService = {
    */
   async getPublicCategories(): Promise<Category[]> {
     const [all, businesses] = await Promise.all([
-      StorageService.getCategories(),
-      StorageService.getBusinesses(),
+      StorageService.getCategories({ onlyActive: true }),
+      StorageService.getBusinesses({ onlyApproved: true }),
     ]);
     const approvedAndPaid = businesses.filter(b => b.approvalStatus === 'approved' && b.paymentStatus === 'paid');
     return all

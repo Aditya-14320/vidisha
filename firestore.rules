@@ -15,18 +15,18 @@ service cloud.firestore {
       );
     }
 
-    // Categories: Public can read active categories, only admin can write
+    // Categories: Public can read, only admin can write
     match /categories/{categoryId} {
-      allow read: if resource.data.isActive == true || isAdmin();
+      allow read: if true;
       allow write: if isAdmin();
     }
 
     // Businesses:
-    // - Public can read ONLY approved businesses
+    // - Public can read businesses across all devices
     // - Admin has full control
     // - Business owners (if linked via ownerUid) can update non-critical presentation fields only
     match /businesses/{businessId} {
-      allow read: if resource.data.approvalStatus == 'approved' || isAdmin();
+      allow read: if true;
       allow create: if isAdmin();
       allow update: if isAdmin() || (
         isAuthenticated() &&

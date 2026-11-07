@@ -8,6 +8,7 @@ import {
   Star
 } from 'lucide-react';
 import { Category, Business, Offer } from '../types';
+import { StorageService } from '../services/storageService';
 import { CategoryService } from '../services/categoryService';
 import { BusinessService } from '../services/businessService';
 import { OfferService } from '../services/offerService';
@@ -56,6 +57,15 @@ export const HomePage: React.FC = () => {
     }
 
     loadHomeData();
+
+    // Live multi-device synchronization: updates instantly when admin adds/modifies businesses
+    const unsubscribe = StorageService.subscribeToBusinesses(() => {
+      loadHomeData();
+    }, { onlyApproved: true });
+
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   return (

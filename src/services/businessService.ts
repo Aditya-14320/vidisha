@@ -7,7 +7,7 @@ export const BusinessService = {
    * Strictly filters to only approved businesses and enforces expiry checks.
    */
   async getPublicBusinesses(filters: SearchFilters = {}): Promise<Business[]> {
-    const all = await StorageService.getBusinesses();
+    const all = await StorageService.getBusinesses({ onlyApproved: true });
     const now = new Date();
 
     return all.filter((biz) => {

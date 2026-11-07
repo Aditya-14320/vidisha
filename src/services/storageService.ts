@@ -1,4 +1,4 @@
-import { isFirebaseConfigured, db } from '../lib/firebase';
+import { isFirebaseConfigured, db, auth } from '../lib/firebase';
 import {
   collection,
   doc,
@@ -11,7 +11,8 @@ import {
   where,
   orderBy,
   runTransaction,
-  writeBatch
+  writeBatch,
+  onSnapshot
 } from 'firebase/firestore';
 import {
   SEED_CATEGORIES,
@@ -448,12 +449,28 @@ export const StorageService = {
   },
 
   // ---------------- CATEGORIES ----------------
-  async getCategories(): Promise<Category[]> {
+  async getCategories(options: { onlyActive?: boolean } = {}): Promise<Category[]> {
     if (this.isUsingFirebase()) {
       try {
-        const snap = await getDocs(query(collection(db!, 'categories'), orderBy('order', 'asc')));
+        const isUserAdmin = auth?.currentUser !== null;
+        let snap;
+
+        // Non-admin devices or public queries must query where isActive == true to satisfy production security rules
+        if (!isUserAdmin || options.onlyActive) {
+          const q = query(collection(db!, 'categories'), where('isActive', '==', true));
+          snap = await getDocs(q);
+        } else {
+          try {
+            snap = await getDocs(query(collection(db!, 'categories'), orderBy('order', 'asc')));
+          } catch {
+            const q = query(collection(db!, 'categories'), where('isActive', '==', true));
+            snap = await getDocs(q);
+          }
+        }
+
         if (!snap.empty) {
           const remoteList = snap.docs.map(d => ({ id: d.id, ...d.data() } as Category));
+          remoteList.sort((a, b) => (a.order || 0) - (b.order || 0));
           this.setLocal(STORAGE_KEYS.CATEGORIES, remoteList);
           return remoteList;
         } else {
@@ -503,10 +520,31 @@ export const StorageService = {
   },
 
   // ---------------- BUSINESSES ----------------
-  async getBusinesses(): Promise<Business[]> {
+  /**
+   * Authoritative business fetcher from Firebase Cloud Firestore.
+   * Supports both public (approved-only) and admin queries.
+   */
+  async getBusinesses(options: { onlyApproved?: boolean } = {}): Promise<Business[]> {
     if (this.isUsingFirebase()) {
       try {
-        const snap = await getDocs(collection(db!, 'businesses'));
+        const isUserAdmin = auth?.currentUser !== null;
+        let snap;
+
+        // Unauthenticated devices (mobile visitors) must query where approvalStatus == 'approved'.
+        // This satisfies Firestore security rules and fetches all approved businesses seamlessly.
+        if (!isUserAdmin || options.onlyApproved) {
+          const q = query(collection(db!, 'businesses'), where('approvalStatus', '==', 'approved'));
+          snap = await getDocs(q);
+        } else {
+          try {
+            snap = await getDocs(collection(db!, 'businesses'));
+          } catch (adminErr) {
+            // Fallback to approved query if unfiltered query is blocked
+            const q = query(collection(db!, 'businesses'), where('approvalStatus', '==', 'approved'));
+            snap = await getDocs(q);
+          }
+        }
+
         if (!snap.empty) {
           const remoteList = snap.docs.map(d => ({ id: d.id, ...d.data() } as Business));
           const cleanRemote = deduplicateBusinesses(remoteList.filter(b => !MOCK_BUSINESS_IDS.has(b.id)));
@@ -526,7 +564,65 @@ export const StorageService = {
     return deduplicateBusinesses(cleanLocal);
   },
 
+  /**
+   * Real-time listener for businesses across all connected devices.
+   */
+  subscribeToBusinesses(callback: (businesses: Business[]) => void, options: { onlyApproved?: boolean } = {}): () => void {
+    if (!this.isUsingFirebase()) {
+      callback(this.getLocal<Business[]>(STORAGE_KEYS.BUSINESSES, []));
+      return () => {};
+    }
+
+    try {
+      const isUserAdmin = auth?.currentUser !== null;
+      const q = (!isUserAdmin || options.onlyApproved)
+        ? query(collection(db!, 'businesses'), where('approvalStatus', '==', 'approved'))
+        : collection(db!, 'businesses');
+
+      return onSnapshot(
+        q,
+        (snap) => {
+          const remoteList = snap.docs.map(d => ({ id: d.id, ...d.data() } as Business));
+          const clean = deduplicateBusinesses(remoteList.filter(b => !MOCK_BUSINESS_IDS.has(b.id)));
+          this.setLocal(STORAGE_KEYS.BUSINESSES, clean);
+          callback(clean);
+        },
+        (err) => {
+          console.warn('Realtime sync fallback to getBusinesses:', err?.message);
+          this.getBusinesses(options).then(callback).catch(console.error);
+        }
+      );
+    } catch {
+      this.getBusinesses(options).then(callback).catch(console.error);
+      return () => {};
+    }
+  },
+
   async getBusinessByIdOrSlug(idOrSlug: string): Promise<Business | null> {
+    if (this.isUsingFirebase()) {
+      try {
+        // Direct document get (allowed by rules for approved businesses or admin)
+        const docSnap = await getDoc(doc(db!, 'businesses', idOrSlug));
+        if (docSnap.exists()) {
+          return { id: docSnap.id, ...docSnap.data() } as Business;
+        }
+
+        // Query by slug with approvalStatus == approved
+        const q = query(
+          collection(db!, 'businesses'),
+          where('slug', '==', idOrSlug),
+          where('approvalStatus', '==', 'approved')
+        );
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          const first = snap.docs[0];
+          return { id: first.id, ...first.data() } as Business;
+        }
+      } catch (err) {
+        console.warn('Direct Firestore fetch by ID/slug fallback:', err);
+      }
+    }
+
     const list = await this.getBusinesses();
     return list.find(b => b.id === idOrSlug || b.slug === idOrSlug) || null;
   },

@@ -4,6 +4,7 @@ import {
   Award, ChevronLeft, Filter, Info, AlertCircle
 } from 'lucide-react';
 import { Category, Business } from '../types';
+import { StorageService } from '../services/storageService';
 import { CategoryService } from '../services/categoryService';
 import { BusinessService } from '../services/businessService';
 import { DynamicIcon } from '../components/common/DynamicIcon';
@@ -43,6 +44,15 @@ export const CategoryDetailPage: React.FC = () => {
       }
     }
     loadCategoryData();
+
+    // Live multi-device synchronization: updates immediately when businesses are added or edited
+    const unsubscribe = StorageService.subscribeToBusinesses(() => {
+      loadCategoryData();
+    }, { onlyApproved: true });
+
+    return () => {
+      unsubscribe();
+    };
   }, [slug]);
 
   if (loading) {

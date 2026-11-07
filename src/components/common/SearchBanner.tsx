@@ -25,8 +25,7 @@ export const SearchBanner: React.FC<SearchBannerProps> = ({ categories }) => {
   const navigate = useNavigate();
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
-  // Popular localities in Vidisha
-  const vidishaLocalities = [
+  const [localitiesList, setLocalitiesList] = useState<string[]>([
     'Station Road',
     'Durga Nagar',
     'Khariphatak',
@@ -38,10 +37,15 @@ export const SearchBanner: React.FC<SearchBannerProps> = ({ categories }) => {
     'Civil Lines',
     'Venkatesh Market',
     'Neem Tal'
-  ];
+  ]);
 
   useEffect(() => {
-    StorageService.getBusinesses().then(setAllBusinesses).catch(console.warn);
+    StorageService.getBusinesses({ onlyApproved: true }).then(setAllBusinesses).catch(console.warn);
+    StorageService.getLocalities().then(locs => {
+      if (locs && locs.length > 0) {
+        setLocalitiesList(locs.filter(l => l !== 'Other / Outskirts'));
+      }
+    }).catch(console.warn);
 
     const handleClickOutside = (event: MouseEvent) => {
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
@@ -194,7 +198,7 @@ export const SearchBanner: React.FC<SearchBannerProps> = ({ categories }) => {
                   className="w-full text-xs font-medium focus:outline-none bg-transparent text-white appearance-none cursor-pointer pr-4 truncate"
                 >
                   <option value="" className="bg-[#18181c] text-white">All Localities</option>
-                  {vidishaLocalities.map((loc) => (
+                  {localitiesList.map((loc) => (
                     <option key={loc} value={loc} className="bg-[#18181c] text-white">
                       {loc}
                     </option>
