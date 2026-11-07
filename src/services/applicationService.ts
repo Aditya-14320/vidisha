@@ -103,6 +103,7 @@ export const ApplicationService = {
       email: application.email,
       address: application.address,
       locality: application.locality || 'Vidisha',
+      mapUrl: application.mapUrl,
       logoUrl: application.logoUrl || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=300&auto=format&fit=crop&q=80',
       coverImageUrl: (application.gallery && application.gallery[0]) || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&auto=format&fit=crop&q=80',
       gallery: application.gallery || [],

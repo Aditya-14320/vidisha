@@ -5,6 +5,7 @@ import {
 import { Offer, Category } from '../types';
 import { OfferService } from '../services/offerService';
 import { CategoryService } from '../services/categoryService';
+import { StorageService, DEFAULT_VIDISHA_LOCALITIES } from '../services/storageService';
 import { OfferCard } from '../components/business/OfferCard';
 import { BannerDisplay } from '../components/business/BannerDisplay';
 import { SEOHead } from '../components/seo/SEOHead';
@@ -18,10 +19,11 @@ export const OffersPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedLocality, setSelectedLocality] = useState('');
 
-  const vidishaLocalities = [
-    'Station Road', 'Durga Nagar', 'Khariphatak', 'Madhavganj',
-    'Sherpura', 'Tilak Chowk', 'Bada Bazar', 'Civil Lines'
-  ];
+  const [vidishaLocalities, setVidishaLocalities] = useState<string[]>(DEFAULT_VIDISHA_LOCALITIES);
+
+  useEffect(() => {
+    StorageService.getLocalities().then(setVidishaLocalities).catch(console.warn);
+  }, []);
 
   const loadOffers = async () => {
     setLoading(true);

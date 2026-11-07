@@ -13,11 +13,15 @@ import {
   ShieldCheck,
   Tag,
   Search,
-  Info
+  Info,
+  ExternalLink,
+  Plus,
+  X
 } from 'lucide-react';
 import { Category, ListingPackageId, ListingApplication } from '../types';
 import { CategoryService } from '../services/categoryService';
 import { ApplicationService } from '../services/applicationService';
+import { StorageService, DEFAULT_VIDISHA_LOCALITIES } from '../services/storageService';
 import { ImageUploadInput } from '../components/common/ImageUploadInput';
 import { SEOHead } from '../components/seo/SEOHead';
 
@@ -38,6 +42,7 @@ export const ListBusinessPage: React.FC = () => {
     categoryId: preselectedCategory,
     address: '',
     locality: 'Station Road',
+    mapUrl: '',
     description: '',
     servicesInput: '',
     openingHours: '09:00 AM - 08:30 PM',
@@ -77,20 +82,31 @@ export const ListBusinessPage: React.FC = () => {
     }
   };
 
-  const vidishaLocalities = [
-    'Station Road',
-    'Durga Nagar',
-    'Khariphatak',
-    'Madhavganj',
-    'Sherpura',
-    'Tilak Chowk',
-    'Bada Bazar',
-    'Ahmedpur Road',
-    'Civil Lines',
-    'Venkatesh Market',
-    'Neem Tal',
-    'Other / Outskirts'
-  ];
+  const [localities, setLocalities] = useState<string[]>(DEFAULT_VIDISHA_LOCALITIES);
+  const [isAddingLocality, setIsAddingLocality] = useState(false);
+  const [newLocalityInput, setNewLocalityInput] = useState('');
+
+  useEffect(() => {
+    StorageService.getLocalities()
+      .then(setLocalities)
+      .catch(console.warn);
+  }, []);
+
+  const handleAddNewLocality = () => {
+    const trimmed = newLocalityInput.trim();
+    if (!trimmed) return;
+    StorageService.addCustomLocality(trimmed);
+    setLocalities(prev => {
+      if (prev.some(l => l.toLowerCase() === trimmed.toLowerCase())) {
+        return prev;
+      }
+      const withoutOther = prev.filter(l => l !== 'Other / Outskirts');
+      return [...withoutOther, trimmed, 'Other / Outskirts'];
+    });
+    setFormData(prev => ({ ...prev, locality: trimmed }));
+    setIsAddingLocality(false);
+    setNewLocalityInput('');
+  };
 
   useEffect(() => {
     CategoryService.getPublicCategories()
@@ -172,6 +188,7 @@ export const ListBusinessPage: React.FC = () => {
         categoryId: formData.categoryId,
         locality: formData.locality,
         address: formData.address.trim(),
+        mapUrl: formData.mapUrl.trim() || undefined,
         description: formData.description.trim(),
         services,
         openingHours: formData.openingHours.trim(),
@@ -255,6 +272,7 @@ export const ListBusinessPage: React.FC = () => {
                   categoryId: categories[0]?.id || '',
                   address: '',
                   locality: 'Station Road',
+                  mapUrl: '',
                   description: '',
                   servicesInput: '',
                   openingHours: '09:00 AM - 08:30 PM',
@@ -405,6 +423,20 @@ export const ListBusinessPage: React.FC = () => {
                         <div><strong className="text-[#a1a1aa]">Requested Package:</strong> <span className="capitalize font-semibold text-gold-400">{app.requestedPackage}</span></div>
                         <div><strong className="text-[#a1a1aa]">Submitted Date:</strong> {new Date(app.submittedAt).toLocaleDateString()}</div>
                         <div><strong className="text-[#a1a1aa]">Address:</strong> {app.address}</div>
+                        {app.mapUrl && (
+                          <div className="sm:col-span-2 flex items-center space-x-1.5 text-gold-400">
+                            <strong className="text-[#a1a1aa]">Google Maps:</strong>
+                            <a
+                              href={app.mapUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-gold-400 hover:underline inline-flex items-center space-x-1 text-xs truncate max-w-xs sm:max-w-md"
+                            >
+                              <span className="truncate">{app.mapUrl}</span>
+                              <ExternalLink className="w-3 h-3 shrink-0" />
+                            </a>
+                          </div>
+                        )}
                       </div>
 
                       <div className="mt-2 p-3 rounded-xl bg-[#141418] border border-[#2a2a34] text-xs leading-relaxed">
@@ -599,21 +631,87 @@ export const ListBusinessPage: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-[#d4d4d8] mb-1">
-                    Locality / Area in Vidisha *
-                  </label>
-                  <select
-                    name="locality"
-                    value={formData.locality}
-                    onChange={handleChange}
-                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#1c1c22] text-white cursor-pointer"
-                  >
-                    {vidishaLocalities.map((loc) => (
-                      <option key={loc} value={loc} className="bg-[#18181c]">
-                        {loc}
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-[#d4d4d8]">
+                      Locality / Area in Vidisha *
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsAddingLocality(!isAddingLocality);
+                        setNewLocalityInput('');
+                      }}
+                      className="text-[11px] font-bold text-gold-400 hover:text-gold-300 flex items-center space-x-1 transition-colors"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>{isAddingLocality ? 'Select List' : 'Add New Location'}</span>
+                    </button>
+                  </div>
+
+                  {!isAddingLocality ? (
+                    <select
+                      name="locality"
+                      value={formData.locality}
+                      onChange={(e) => {
+                        if (e.target.value === '__add_new__') {
+                          setIsAddingLocality(true);
+                          setNewLocalityInput('');
+                        } else {
+                          handleChange(e);
+                        }
+                      }}
+                      className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#1c1c22] text-white cursor-pointer"
+                    >
+                      {localities.map((loc) => (
+                        <option key={loc} value={loc} className="bg-[#18181c]">
+                          {loc}
+                        </option>
+                      ))}
+                      <option value="__add_new__" className="bg-[#24242e] text-gold-400 font-bold">
+                        + Add New Location...
                       </option>
-                    ))}
-                  </select>
+                    </select>
+                  ) : (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center space-x-1.5">
+                        <input
+                          type="text"
+                          autoFocus
+                          value={newLocalityInput}
+                          onChange={(e) => setNewLocalityInput(e.target.value)}
+                          placeholder="Type new locality name..."
+                          className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-gold-500/60 focus:outline-none focus:border-gold-400 bg-[#1c1c22] text-white placeholder-[#71717a]"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleAddNewLocality();
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddNewLocality}
+                          className="px-3.5 py-2.5 bg-gradient-to-r from-gold-400 to-gold-500 hover:from-gold-300 hover:to-gold-400 text-dark-950 font-bold text-xs rounded-xl shadow-md shrink-0"
+                        >
+                          Add
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsAddingLocality(false);
+                            setNewLocalityInput('');
+                          }}
+                          className="p-2.5 text-[#a1a1aa] hover:text-white rounded-xl hover:bg-[#26262e] shrink-0"
+                          title="Cancel"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-[#71717a] font-light">
+                        Click "Add" or press Enter to add and select this new locality.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="sm:col-span-2">
@@ -629,6 +727,24 @@ export const ListBusinessPage: React.FC = () => {
                     placeholder="Shop No., Market Complex, Street landmark, Vidisha"
                     className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#1c1c22] text-white placeholder-[#71717a]"
                   />
+                </div>
+
+                <div className="sm:col-span-3">
+                  <label className="block text-xs font-bold text-[#d4d4d8] mb-1 flex items-center justify-between">
+                    <span>Google Maps Link (Optional)</span>
+                    <span className="text-[10px] font-normal text-gold-400">e.g. maps.app.goo.gl/...</span>
+                  </label>
+                  <input
+                    type="url"
+                    name="mapUrl"
+                    value={formData.mapUrl}
+                    onChange={handleChange}
+                    placeholder="https://maps.app.goo.gl/... or Google Maps share link"
+                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#1c1c22] text-white placeholder-[#71717a]"
+                  />
+                  <p className="text-[11px] text-[#71717a] mt-1 font-light">
+                    Paste your Google Maps location URL so customers can navigate directly to your shop or office with 1 click.
+                  </p>
                 </div>
               </div>
             </div>

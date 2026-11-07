@@ -45,7 +45,25 @@ export const STORAGE_KEYS = {
   AUDIT: 'vidisha_audit_v1',
   SETTINGS: 'vidisha_settings_v1',
   INITIALIZED: 'vidisha_db_initialized_v6',
+  LOCALITIES: 'vidisha_custom_localities_v1',
 };
+
+export const DEFAULT_VIDISHA_LOCALITIES = [
+  'Station Road',
+  'Civil Lines',
+  'Bada Bazar',
+  'Madhavganj',
+  'Durga Nagar',
+  'Khariphatak',
+  'Sherpura',
+  'Tilak Chowk',
+  'Ahmedpur Road',
+  'Venkatesh Market',
+  'Neem Tal',
+  'Sanchi Road',
+  'Collectorate Circle',
+  'Other / Outskirts'
+];
 
 // Strict Deduplication Helpers - Guarantees no business or offer is ever repeated
 export function deduplicateBusinesses(businesses: Business[]): Business[] {
@@ -539,6 +557,10 @@ export const StorageService = {
     }
     const deduplicated = deduplicateBusinesses(list);
     this.setLocal(STORAGE_KEYS.BUSINESSES, deduplicated);
+
+    if (updatedBusiness.locality) {
+      this.addCustomLocality(updatedBusiness.locality);
+    }
     return updatedBusiness;
   },
 
@@ -1102,5 +1124,46 @@ export const StorageService = {
       details: { siteName: settings.siteName, packagesCount: settings.packages.length }
     });
     return settings;
+  },
+
+  // ---------------- LOCALITIES ----------------
+  async getLocalities(): Promise<string[]> {
+    const custom = this.getLocal<string[]>(STORAGE_KEYS.LOCALITIES, []);
+    let bizLocalities: string[] = [];
+    try {
+      const businesses = await this.getBusinesses();
+      bizLocalities = businesses.map(b => b.locality).filter(Boolean);
+    } catch {
+      // fallback
+    }
+
+    const uniqueSet = new Set<string>();
+    // Add default localities (except Other / Outskirts)
+    DEFAULT_VIDISHA_LOCALITIES.forEach(loc => {
+      if (loc && loc !== 'Other / Outskirts') uniqueSet.add(loc);
+    });
+    // Add custom added localities
+    custom.forEach(loc => {
+      if (loc && loc !== 'Other / Outskirts') uniqueSet.add(loc);
+    });
+    // Add localities from any existing businesses
+    bizLocalities.forEach(loc => {
+      if (loc && loc !== 'Other / Outskirts') uniqueSet.add(loc);
+    });
+
+    const sorted = Array.from(uniqueSet).sort((a, b) => a.localeCompare(b));
+    sorted.push('Other / Outskirts');
+    return sorted;
+  },
+
+  addCustomLocality(name: string): string {
+    const clean = (name || '').trim();
+    if (!clean || clean.toLowerCase() === 'other / outskirts') return clean;
+    const existing = this.getLocal<string[]>(STORAGE_KEYS.LOCALITIES, []);
+    if (!existing.some(l => l.toLowerCase() === clean.toLowerCase())) {
+      existing.push(clean);
+      this.setLocal(STORAGE_KEYS.LOCALITIES, existing);
+    }
+    return clean;
   }
 };

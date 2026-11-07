@@ -10,6 +10,7 @@ import {
 import { Business, Category } from '../types';
 import { BusinessService } from '../services/businessService';
 import { CategoryService } from '../services/categoryService';
+import { StorageService, DEFAULT_VIDISHA_LOCALITIES } from '../services/storageService';
 import { BusinessCard } from '../components/business/BusinessCard';
 import { BusinessCardSkeleton } from '../components/common/SkeletonCard';
 
@@ -29,14 +30,11 @@ export const SearchPage: React.FC = () => {
   const [results, setResults] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const vidishaLocalities = [
-    'Station Road', 'Durga Nagar', 'Khariphatak', 'Madhavganj',
-    'Sherpura', 'Tilak Chowk', 'Bada Bazar', 'Ahmedpur Road',
-    'Civil Lines', 'Venkatesh Market', 'Neem Tal'
-  ];
+  const [vidishaLocalities, setVidishaLocalities] = useState<string[]>(DEFAULT_VIDISHA_LOCALITIES);
 
   useEffect(() => {
     CategoryService.getPublicCategories().then(setCategories).catch(console.warn);
+    StorageService.getLocalities().then(setVidishaLocalities).catch(console.warn);
   }, []);
 
   useEffect(() => {

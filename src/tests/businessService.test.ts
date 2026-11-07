@@ -131,4 +131,39 @@ describe('Business Directory Queries & Application Submissions', () => {
     expect(valid.application).toBeDefined();
     expect(valid.application?.status).toBe('pending');
   });
+
+  it('submits application with mapUrl and converts to business with mapUrl preserved', async () => {
+    const testMapUrl = 'https://maps.app.goo.gl/vidisha-test-link';
+    const valid = await ApplicationService.submitApplication({
+      businessName: 'Vidisha Map Electronics',
+      ownerName: 'Amit Sharma',
+      phone: '9826099999',
+      whatsapp: '9826099999',
+      categoryId: 'cat-home-repair',
+      address: 'Station Road, Vidisha',
+      locality: 'Station Road',
+      mapUrl: testMapUrl,
+      description: 'Electronics sales and repair.',
+      services: ['Repair', 'Sales'],
+      requestedPackage: 'complete',
+      consentTerms: true
+    });
+
+    expect(valid.success).toBe(true);
+    expect(valid.application?.mapUrl).toBe(testMapUrl);
+
+    if (valid.application) {
+      const convertedBiz = await ApplicationService.convertToBusiness(valid.application, 'admin@vidisha.in');
+      expect(convertedBiz.mapUrl).toBe(testMapUrl);
+    }
+  });
+
+  it('adds custom locality and retrieves updated localities list', async () => {
+    const newLocality = 'Mukharji Nagar Colony';
+    StorageService.addCustomLocality(newLocality);
+
+    const localities = await StorageService.getLocalities();
+    expect(localities).toContain(newLocality);
+    expect(localities[localities.length - 1]).toBe('Other / Outskirts');
+  });
 });

@@ -151,11 +151,24 @@ export const AdminApplicationsPage: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="text-slate-600 flex flex-wrap gap-x-4 gap-y-1">
+                  <div className="text-slate-600 flex flex-wrap gap-x-4 gap-y-1 items-center">
                     <span><strong>Applicant:</strong> {app.ownerName}</span>
                     <span><strong>Phone:</strong> {app.phone}</span>
                     <span><strong>Area:</strong> {app.locality}</span>
                     <span><strong>Submitted:</strong> {new Date(app.submittedAt).toLocaleDateString()}</span>
+                    {app.mapUrl && (
+                      <a
+                        href={app.mapUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center space-x-1"
+                        title="Open applicant's Google Maps link"
+                      >
+                        <MapPin className="w-3.5 h-3.5 text-red-500" />
+                        <span>Map Link</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
                   </div>
 
                   <p className="text-slate-500 line-clamp-1 max-w-xl">

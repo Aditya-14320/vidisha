@@ -115,6 +115,7 @@ export interface ListingApplication {
   categoryId: string;
   address: string;
   locality: string;
+  mapUrl?: string;
   description: string;
   services: string[];
   openingHours?: string;
