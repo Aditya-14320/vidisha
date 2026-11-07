@@ -21,7 +21,8 @@ import {
   Clock,
   Layers,
   Sparkles,
-  Upload
+  Upload,
+  Loader2
 } from 'lucide-react';
 import {
   Banner,
@@ -31,6 +32,7 @@ import {
 } from '../../types';
 import { BannerService } from '../../services/bannerService';
 import { useAuth } from '../../context/AuthContext';
+import { uploadToCloudinary } from '../../services/cloudinaryService';
 
 function getSafeImageUrl(url?: string): string {
   if (!url) return '';
@@ -168,19 +170,23 @@ export const AdminBannersPage: React.FC = () => {
     }
   }, [formData.placement, formData.startDate, formData.expiryDate, showCreateModal, showEditModal, selectedBanner]);
 
-  // File upload handler
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  // File upload handler to Cloudinary
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      setMessage({ text: 'Image file size should be less than 2MB.', type: 'error' });
-      return;
+    setUploadingImage(true);
+    try {
+      const url = await uploadToCloudinary(file, 'vidisha-banners');
+      setFormData((prev) => ({ ...prev, imageUrl: url }));
+      setMessage({ text: 'Banner image uploaded to Cloudinary successfully!', type: 'success' });
+    } catch (err: any) {
+      setMessage({ text: err.message || 'Failed to upload image.', type: 'error' });
+    } finally {
+      setUploadingImage(false);
+      e.target.value = '';
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      setFormData((prev) => ({ ...prev, imageUrl: reader.result as string }));
-    };
-    reader.readAsDataURL(file);
   };
 
   // Open Create Modal
@@ -897,7 +903,7 @@ export const AdminBannersPage: React.FC = () => {
       {/* Modal: Create Campaign */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150 admin-modal text-slate-900">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
               <h3 className="font-black text-slate-900 text-lg">Create Banner Campaign</h3>
               <button onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-slate-700">
@@ -995,11 +1001,21 @@ export const AdminBannersPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <label className="font-bold text-slate-700 block">Banner Artwork / Image</label>
                   <label className="text-blue-600 hover:text-blue-700 cursor-pointer font-bold flex items-center space-x-1">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>Upload from device</span>
+                    {uploadingImage ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Uploading to Cloudinary...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>Upload from device (Cloudinary)</span>
+                      </>
+                    )}
                     <input
                       type="file"
                       accept="image/*"
+                      disabled={uploadingImage}
                       onChange={handleFileUpload}
                       className="hidden"
                     />
@@ -1096,7 +1112,7 @@ export const AdminBannersPage: React.FC = () => {
       {/* Modal: Edit Campaign */}
       {showEditModal && selectedBanner && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150 admin-modal text-slate-900">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
               <h3 className="font-black text-slate-900 text-lg">Edit Banner Campaign</h3>
               <button onClick={() => setShowEditModal(false)} className="text-slate-400 hover:text-slate-700">
@@ -1181,11 +1197,21 @@ export const AdminBannersPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <label className="font-bold text-slate-700 block">Banner Artwork / Image</label>
                   <label className="text-blue-600 hover:text-blue-700 cursor-pointer font-bold flex items-center space-x-1">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>Upload from device</span>
+                    {uploadingImage ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Uploading to Cloudinary...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>Upload from device (Cloudinary)</span>
+                      </>
+                    )}
                     <input
                       type="file"
                       accept="image/*"
+                      disabled={uploadingImage}
                       onChange={handleFileUpload}
                       className="hidden"
                     />
@@ -1269,7 +1295,7 @@ export const AdminBannersPage: React.FC = () => {
       {/* Modal: Verify Payment */}
       {showPaymentModal && selectedBanner && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150 admin-modal text-slate-900">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
               <h3 className="font-black text-slate-900 text-base">Verify Payment — {selectedBanner.businessName}</h3>
               <button onClick={() => setShowPaymentModal(false)} className="text-slate-400 hover:text-slate-700">
@@ -1338,7 +1364,7 @@ export const AdminBannersPage: React.FC = () => {
       {/* Modal: Rejection Reason */}
       {showRejectModal && selectedBanner && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 admin-modal text-slate-900">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
               <h3 className="font-black text-rose-700 text-base">Reject Campaign</h3>
               <button onClick={() => setShowRejectModal(false)} className="text-slate-400 hover:text-slate-700">

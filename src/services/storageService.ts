@@ -44,7 +44,7 @@ export const STORAGE_KEYS = {
   REPORTS: 'vidisha_reports_v1',
   AUDIT: 'vidisha_audit_v1',
   SETTINGS: 'vidisha_settings_v1',
-  INITIALIZED: 'vidisha_db_initialized_v5',
+  INITIALIZED: 'vidisha_db_initialized_v6',
 };
 
 // Strict Deduplication Helpers - Guarantees no business or offer is ever repeated
@@ -100,45 +100,37 @@ export function deduplicateOffers(offers: Offer[]): Offer[] {
 export const MOCK_BUSINESS_IDS = new Set<string>([]);
 export const MOCK_OFFER_IDS = new Set<string>([]);
 
-// Check if local persistent store is initialized; if not, seed it with initial defaults once.
+// Check if local persistent store is initialized; if not, initialize clean store once.
 function ensureInitializedLocalStore() {
   if (typeof window === 'undefined') return;
   const isInit = localStorage.getItem(STORAGE_KEYS.INITIALIZED);
   if (!isInit) {
-    // If not initialized yet, set default empty arrays / seeds once
+    // Retain or seed official categories so adding businesses works immediately
     if (!localStorage.getItem(STORAGE_KEYS.CATEGORIES)) {
       localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(SEED_CATEGORIES));
     }
-    if (!localStorage.getItem(STORAGE_KEYS.BUSINESSES)) {
-      localStorage.setItem(STORAGE_KEYS.BUSINESSES, JSON.stringify(deduplicateBusinesses(SEED_BUSINESSES)));
-    }
-    if (!localStorage.getItem(STORAGE_KEYS.OFFERS)) {
-      localStorage.setItem(STORAGE_KEYS.OFFERS, JSON.stringify(deduplicateOffers(SEED_OFFERS)));
-    }
+    // Start completely clean with zero mock businesses and zero offers
+    localStorage.setItem(STORAGE_KEYS.BUSINESSES, JSON.stringify([]));
+    localStorage.setItem(STORAGE_KEYS.OFFERS, JSON.stringify([]));
+    localStorage.setItem(STORAGE_KEYS.OFFER_CLAIMS, JSON.stringify([]));
     if (!localStorage.getItem(STORAGE_KEYS.SLOTS)) {
       localStorage.setItem(STORAGE_KEYS.SLOTS, JSON.stringify(INITIAL_TOP10_SLOTS));
     }
-    if (!localStorage.getItem(STORAGE_KEYS.APPLICATIONS)) {
-      localStorage.setItem(STORAGE_KEYS.APPLICATIONS, JSON.stringify([]));
-    }
-    if (!localStorage.getItem(STORAGE_KEYS.PAYMENTS)) {
-      localStorage.setItem(STORAGE_KEYS.PAYMENTS, JSON.stringify([]));
-    }
-    if (!localStorage.getItem(STORAGE_KEYS.REPORTS)) {
-      localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify([]));
-    }
+    localStorage.setItem(STORAGE_KEYS.APPLICATIONS, JSON.stringify([]));
+    localStorage.setItem(STORAGE_KEYS.PAYMENTS, JSON.stringify([]));
+    localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify([]));
     if (!localStorage.getItem(STORAGE_KEYS.SETTINGS)) {
       localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(SEED_SETTINGS));
     }
     if (!localStorage.getItem(STORAGE_KEYS.AUDIT)) {
       localStorage.setItem(STORAGE_KEYS.AUDIT, JSON.stringify([
         {
-          id: 'audit-seed-1',
-          action: 'SYSTEM_INITIALIZED',
+          id: 'audit-init-clean',
+          action: 'SYSTEM_INITIALIZED_CLEAN',
           performedBy: 'System Bootstrap',
           targetType: 'settings',
-          targetId: 'seed',
-          details: { seedDate: new Date().toISOString(), businesses: SEED_BUSINESSES.length },
+          targetId: 'clean',
+          details: { initializedAt: new Date().toISOString(), businesses: 0 },
           timestamp: new Date().toISOString()
         }
       ]));
@@ -192,13 +184,29 @@ export const StorageService = {
     this.setLocal(STORAGE_KEYS.INITIALIZED, 'true');
   },
 
+  wipeLocalDatabase(preserveCategories: boolean = true) {
+    this.setLocal(STORAGE_KEYS.BUSINESSES, []);
+    this.setLocal(STORAGE_KEYS.OFFERS, []);
+    this.setLocal(STORAGE_KEYS.OFFER_CLAIMS, []);
+    this.setLocal(STORAGE_KEYS.APPLICATIONS, []);
+    this.setLocal(STORAGE_KEYS.PAYMENTS, []);
+    this.setLocal(STORAGE_KEYS.REPORTS, []);
+    this.setLocal(STORAGE_KEYS.SLOTS, INITIAL_TOP10_SLOTS);
+    this.setLocal('vidisha_banners_v1', []);
+    this.setLocal('vidisha_banner_packages_v1', []);
+    if (!preserveCategories) {
+      this.setLocal(STORAGE_KEYS.CATEGORIES, []);
+    }
+    this.setLocal(STORAGE_KEYS.INITIALIZED, 'true');
+  },
+
   exportFullDatabase() {
     return {
       version: '2.0',
       exportedAt: new Date().toISOString(),
       categories: this.getLocal(STORAGE_KEYS.CATEGORIES, SEED_CATEGORIES),
-      businesses: deduplicateBusinesses(this.getLocal(STORAGE_KEYS.BUSINESSES, SEED_BUSINESSES)),
-      offers: deduplicateOffers(this.getLocal(STORAGE_KEYS.OFFERS, SEED_OFFERS)),
+      businesses: deduplicateBusinesses(this.getLocal(STORAGE_KEYS.BUSINESSES, [])),
+      offers: deduplicateOffers(this.getLocal(STORAGE_KEYS.OFFERS, [])),
       applications: this.getLocal(STORAGE_KEYS.APPLICATIONS, []),
       payments: this.getLocal(STORAGE_KEYS.PAYMENTS, []),
       slots: this.getLocal(STORAGE_KEYS.SLOTS, INITIAL_TOP10_SLOTS),

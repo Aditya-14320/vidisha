@@ -18,6 +18,7 @@ import {
 import { Category, ListingPackageId, ListingApplication } from '../types';
 import { CategoryService } from '../services/categoryService';
 import { ApplicationService } from '../services/applicationService';
+import { ImageUploadInput } from '../components/common/ImageUploadInput';
 
 export const ListBusinessPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -689,54 +690,56 @@ export const ListBusinessPage: React.FC = () => {
                 </div>
 
                 {/* Photograph Fields conditioned on Selected Package */}
-                <div className="space-y-3 p-4 bg-[#181820] rounded-2xl border border-[#2a2a34]">
+                <div className="space-y-4 p-4 bg-[#181820] rounded-2xl border border-[#2a2a34]">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-gold-400">
-                      Business Photographs ({formData.requestedPackage === 'complete' ? 'Complete Listing: Up to 2 Photos' : 'Priority Plan: Up to 3 Photos'})
+                      Business Photographs & Logo ({formData.requestedPackage === 'complete' ? 'Complete Listing: Up to 2 Photos' : 'Priority Plan: Up to 3 Photos'})
                     </span>
+                    <span className="text-[10px] text-[#71717a]">Cloudinary High-Speed Storage</span>
                   </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-[#a1a1aa] mb-1">
-                        Photograph 1 (Storefront)
-                      </label>
-                      <input
-                        type="url"
-                        name="photo1"
-                        value={formData.photo1}
-                        onChange={handleChange}
-                        placeholder="https://... (storefront)"
-                        className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#141418] text-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-[#a1a1aa] mb-1">
-                        Photograph 2 (Showroom/Interior)
-                      </label>
-                      <input
-                        type="url"
-                        name="photo2"
-                        value={formData.photo2}
-                        onChange={handleChange}
-                        placeholder="https://... (interior display)"
-                        className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#141418] text-white"
-                      />
-                    </div>
+                    <ImageUploadInput
+                      label="Photograph 1 (Storefront)"
+                      value={formData.photo1}
+                      onChange={(url) => setFormData((prev) => ({ ...prev, photo1: url }))}
+                      folder="vidisha-applications/storefronts"
+                      placeholder="Upload storefront image..."
+                      recommendedSize="Main photo"
+                      darkTheme={true}
+                    />
+
+                    <ImageUploadInput
+                      label="Photograph 2 (Showroom/Interior)"
+                      value={formData.photo2}
+                      onChange={(url) => setFormData((prev) => ({ ...prev, photo2: url }))}
+                      folder="vidisha-applications/interiors"
+                      placeholder="Upload interior display..."
+                      recommendedSize="Interior view"
+                      darkTheme={true}
+                    />
+
                     {formData.requestedPackage === 'priority' && (
-                      <div>
-                        <label className="block text-xs font-semibold text-[#a1a1aa] mb-1">
-                          Photograph 3 (Specialty/Products)
-                        </label>
-                        <input
-                          type="url"
-                          name="photo3"
-                          value={formData.photo3}
-                          onChange={handleChange}
-                          placeholder="https://... (featured product)"
-                          className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-[#2e2e38] focus:outline-none focus:border-gold-500 bg-[#141418] text-white"
-                        />
-                      </div>
+                      <ImageUploadInput
+                        label="Photograph 3 (Specialty/Products)"
+                        value={formData.photo3}
+                        onChange={(url) => setFormData((prev) => ({ ...prev, photo3: url }))}
+                        folder="vidisha-applications/specialties"
+                        placeholder="Upload featured product..."
+                        recommendedSize="Product showcase"
+                        darkTheme={true}
+                      />
                     )}
+
+                    <ImageUploadInput
+                      label="Business Logo (Optional)"
+                      value={formData.logoUrl}
+                      onChange={(url) => setFormData((prev) => ({ ...prev, logoUrl: url }))}
+                      folder="vidisha-applications/logos"
+                      placeholder="Upload shop logo..."
+                      recommendedSize="Square format"
+                      darkTheme={true}
+                    />
                   </div>
                 </div>
               </div>

@@ -21,17 +21,185 @@
   }
 }
 
+/* =========================================================================
+   ADMIN PANEL & FORM CONTROLS: COMPREHENSIVE TEXT VISIBILITY & CONTRAST
+   ========================================================================= */
+
+/* 1. Admin Base Scope */
+.admin-layout,
+.admin-root,
+.admin-modal,
+[data-admin-scope="true"] {
+  color: #0f172a;
+}
+
+/* 2. All Input Fields & Textareas (Light Surfaces & Modals) - Clearly visible dark colors (#1e293b) */
+.admin-layout input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="color"]):not([type="range"]):not(.dark-input),
+.admin-layout textarea:not(.dark-input):not(.bg-slate-900),
+.admin-modal input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="color"]):not([type="range"]):not(.dark-input),
+.admin-modal textarea:not(.dark-input):not(.bg-slate-900),
+form.admin-form input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="color"]):not([type="range"]),
+form.admin-form textarea:not(.bg-slate-900) {
+  color: #1e293b !important;
+  background-color: #ffffff;
+  caret-color: #1e293b;
+}
+
+/* 3. Placeholder Text - Readable Grey (#94a3b8) */
+.admin-layout input::placeholder,
+.admin-layout textarea::placeholder,
+.admin-modal input::placeholder,
+.admin-modal textarea::placeholder,
+form.admin-form input::placeholder,
+form.admin-form textarea::placeholder {
+  color: #94a3b8 !important;
+  opacity: 1 !important;
+}
+
+.admin-layout input::-webkit-input-placeholder,
+.admin-layout textarea::-webkit-input-placeholder,
+.admin-modal input::-webkit-input-placeholder,
+.admin-modal textarea::-webkit-input-placeholder {
+  color: #94a3b8 !important;
+  opacity: 1 !important;
+}
+
+.admin-layout input::-moz-placeholder,
+.admin-layout textarea::-moz-placeholder,
+.admin-modal input::-moz-placeholder,
+.admin-modal textarea::-moz-placeholder {
+  color: #94a3b8 !important;
+  opacity: 1 !important;
+}
+
+.admin-layout input:-ms-input-placeholder,
+.admin-layout textarea:-ms-input-placeholder,
+.admin-modal input:-ms-input-placeholder,
+.admin-modal textarea:-ms-input-placeholder {
+  color: #94a3b8 !important;
+  opacity: 1 !important;
+}
+
+/* 4. Dropdowns (Select & Option) - Selected Values Clearly Visible */
+.admin-layout select,
+.admin-modal select,
+form.admin-form select {
+  color: #1e293b !important;
+  background-color: #ffffff !important;
+  font-weight: 500;
+}
+
+.admin-layout select option,
+.admin-modal select option,
+form.admin-form select option {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+  font-weight: 500;
+  padding: 8px 12px;
+}
+
+.admin-layout select option:checked,
+.admin-modal select option:checked,
+form.admin-form select option:checked {
+  background-color: #eff6ff !important;
+  color: #1d4ed8 !important;
+  font-weight: 600;
+}
+
+/* 5. Labels, Helper Text & Validation Messages Contrast */
+.admin-layout label,
+.admin-modal label {
+  color: #334155;
+}
+
+.admin-layout .text-slate-500,
+.admin-layout .text-slate-400,
+.admin-modal .text-slate-500,
+.admin-modal .text-slate-400 {
+  color: #64748b;
+}
+
+/* Validation error text */
+.admin-layout .text-red-500,
+.admin-layout .text-red-600,
+.admin-modal .text-red-500,
+.admin-modal .text-red-600 {
+  color: #dc2626 !important;
+}
+
+/* 6. Autofill Styling (WebKit, Blink, Firefox) */
+.admin-layout input:-webkit-autofill,
+.admin-layout input:-webkit-autofill:hover,
+.admin-layout input:-webkit-autofill:focus,
+.admin-layout textarea:-webkit-autofill,
+.admin-layout textarea:-webkit-autofill:hover,
+.admin-layout textarea:-webkit-autofill:focus,
+.admin-layout select:-webkit-autofill,
+.admin-layout select:-webkit-autofill:hover,
+.admin-layout select:-webkit-autofill:focus,
+.admin-modal input:-webkit-autofill,
+.admin-modal input:-webkit-autofill:hover,
+.admin-modal input:-webkit-autofill:focus,
+.admin-modal textarea:-webkit-autofill,
+.admin-modal textarea:-webkit-autofill:hover,
+.admin-modal textarea:-webkit-autofill:focus,
+.admin-modal select:-webkit-autofill,
+.admin-modal select:-webkit-autofill:hover,
+.admin-modal select:-webkit-autofill:focus {
+  -webkit-text-fill-color: #1e293b !important;
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  caret-color: #1e293b !important;
+  transition: background-color 5000s ease-in-out 0s;
+  font-family: inherit !important;
+}
+
+/* 7. Browser Selection Styling */
+.admin-layout ::selection,
+.admin-modal ::selection {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+/* 8. Code & JSON Editor Protection (Database Page) */
+.admin-layout textarea.font-mono.bg-slate-900,
+.admin-layout textarea.font-mono.bg-slate-900:focus,
+.admin-modal textarea.font-mono.bg-slate-900 {
+  color: #f1f5f9 !important;
+  background-color: #0f172a !important;
+  caret-color: #38bdf8 !important;
+  -webkit-text-fill-color: #f1f5f9 !important;
+}
+
+/* 9. Dark Theme Preservation (Public Website & Dark Contexts) */
+.dark-input,
+.dark-select,
+.bg-[#181820] input:not([type="checkbox"]):not([type="radio"]),
+.bg-[#181820] textarea,
+.bg-[#141418] input:not([type="checkbox"]):not([type="radio"]),
+.bg-[#141418] textarea {
+  color: #ffffff !important;
+  background-color: #141418;
+  caret-color: #ffffff;
+}
+.bg-[#181820] input::placeholder,
+.bg-[#181820] textarea::placeholder,
+.bg-[#141418] input::placeholder,
+.bg-[#141418] textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
 /* Ensure form controls behave consistently with clean borders & padding */
 select {
   height: 2.5rem;
   line-height: 1.25rem;
   background-color: #ffffff;
-  color: #0f172a;
+  color: #1e293b;
 }
 
 select option {
   background-color: #ffffff;
-  color: #0f172a;
+  color: #1e293b;
   padding: 8px 12px;
 }
 

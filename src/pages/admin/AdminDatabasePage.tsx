@@ -17,7 +17,8 @@ import {
   ShieldCheck,
   Save,
   Check,
-  X
+  X,
+  Eraser
 } from 'lucide-react';
 import { StorageService } from '../../services/storageService';
 import { Business, Category, Offer, ListingApplication, PaymentRecord } from '../../types';
@@ -139,6 +140,13 @@ export const AdminDatabasePage: React.FC = () => {
     loadData();
   };
 
+  const handleWipeLocalData = () => {
+    if (!window.confirm('Wipe all local businesses, offers, applications, and payments to start completely clean? (Official categories will remain intact).')) return;
+    StorageService.wipeLocalDatabase(true);
+    setMessage({ text: 'All local business listings and offers wiped. You now have a clean fresh slate!', type: 'success' });
+    loadData();
+  };
+
   const handleSyncToFirestore = async () => {
     setSyncing(true);
     setMessage(null);
@@ -227,6 +235,15 @@ export const AdminDatabasePage: React.FC = () => {
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export Backup</span>
+          </button>
+
+          <button
+            onClick={handleWipeLocalData}
+            className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-sm flex items-center space-x-1.5"
+            title="Wipe local businesses & offers to start completely clean"
+          >
+            <Eraser className="w-3.5 h-3.5" />
+            <span>Wipe Local Data (Start Clean)</span>
           </button>
 
           <button

@@ -308,7 +308,7 @@ export const AdminTop10SlotsPage: React.FC = () => {
       {/* Assignment Modal */}
       {assigningSlot !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative border border-slate-200">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative border border-slate-200 admin-modal text-slate-900">
             <button
               onClick={() => setAssigningSlot(null)}
               className="absolute top-4 right-4 p-1 text-slate-400 hover:text-slate-700"

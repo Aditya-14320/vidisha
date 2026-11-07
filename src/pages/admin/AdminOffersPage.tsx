@@ -449,7 +449,7 @@ export const AdminOffersPage: React.FC = () => {
       {/* Offer Edit/Create Modal */}
       {showModal && editingOffer && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl relative border border-slate-200 max-h-[92vh] overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl relative border border-slate-200 max-h-[92vh] overflow-y-auto admin-modal text-slate-900">
             <button
               onClick={() => setShowModal(false)}
               className="absolute top-4 right-4 p-1 text-slate-400 hover:text-slate-700"

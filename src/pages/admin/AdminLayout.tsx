@@ -53,7 +53,7 @@ export const AdminLayout: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-slate-100 flex flex-col md:flex-row text-slate-900 admin-layout">
       {/* Mobile Top Header for Admin */}
       <div className="md:hidden bg-slate-900 text-white p-4 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center space-x-2">
@@ -140,7 +140,7 @@ export const AdminLayout: React.FC = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto text-slate-900">
         <Outlet />
       </main>
     </div>

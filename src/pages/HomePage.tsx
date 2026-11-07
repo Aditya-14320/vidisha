@@ -16,7 +16,6 @@ import { CategoryCard } from '../components/common/CategoryCard';
 import { BusinessCard } from '../components/business/BusinessCard';
 import { OfferCard } from '../components/business/OfferCard';
 import { BannerDisplay } from '../components/business/BannerDisplay';
-import { PWAInstallPrompt } from '../components/pwa/PWAInstallPrompt';
 import { BusinessCardSkeleton, CategoryCardSkeleton } from '../components/common/SkeletonCard';
 
 export const HomePage: React.FC = () => {
@@ -61,9 +60,6 @@ export const HomePage: React.FC = () => {
     <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6">
       {/* Top Search Hero Banner matching reference screenshot */}
       <SearchBanner categories={categories} />
-
-      {/* PWA Install App Section below hero/search matching user request */}
-      <PWAInstallPrompt inline />
 
       {/* Featured Establishments section matching reference screenshot */}
       <section className="mb-10 sm:mb-14 bg-[#141417] rounded-3xl p-5 sm:p-7 border border-[#2a2a30] shadow-[0_10px_35px_rgba(0,0,0,0.7)]">
