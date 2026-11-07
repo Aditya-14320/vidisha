@@ -174,18 +174,18 @@ form.admin-form select option:checked {
 /* 9. Dark Theme Preservation (Public Website & Dark Contexts) */
 .dark-input,
 .dark-select,
-.bg-[#181820] input:not([type="checkbox"]):not([type="radio"]),
-.bg-[#181820] textarea,
-.bg-[#141418] input:not([type="checkbox"]):not([type="radio"]),
-.bg-[#141418] textarea {
+[class*="bg-[#181820]"] input:not([type="checkbox"]):not([type="radio"]),
+[class*="bg-[#181820]"] textarea,
+[class*="bg-[#141418]"] input:not([type="checkbox"]):not([type="radio"]),
+[class*="bg-[#141418]"] textarea {
   color: #ffffff !important;
   background-color: #141418;
   caret-color: #ffffff;
 }
-.bg-[#181820] input::placeholder,
-.bg-[#181820] textarea::placeholder,
-.bg-[#141418] input::placeholder,
-.bg-[#141418] textarea::placeholder {
+[class*="bg-[#181820]"] input::placeholder,
+[class*="bg-[#181820]"] textarea::placeholder,
+[class*="bg-[#141418]"] input::placeholder,
+[class*="bg-[#141418]"] textarea::placeholder {
   color: #94a3b8 !important;
 }
 

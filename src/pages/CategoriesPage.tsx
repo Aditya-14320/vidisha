@@ -4,6 +4,7 @@ import { Category } from '../types';
 import { CategoryService } from '../services/categoryService';
 import { CategoryCard } from '../components/common/CategoryCard';
 import { CategoryCardSkeleton } from '../components/common/SkeletonCard';
+import { SEOHead } from '../components/seo/SEOHead';
 
 export const CategoriesPage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -23,6 +24,16 @@ export const CategoriesPage: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
+      <SEOHead
+        title="All Business Categories in Vidisha | Vidisha City Directory"
+        description="Browse all local business categories in Vidisha, MP. From restaurants, hotels, and doctors to coaching institutes, salons, and home services."
+        canonical="/categories"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'All Categories', url: '/categories' },
+        ]}
+      />
+
       {/* Header */}
       <div className="text-center max-w-2xl mx-auto mb-10">
         <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-[#1c1c22] text-gold-400 text-xs font-semibold border border-gold-500/30 mb-3">

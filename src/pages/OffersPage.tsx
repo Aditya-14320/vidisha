@@ -7,6 +7,7 @@ import { OfferService } from '../services/offerService';
 import { CategoryService } from '../services/categoryService';
 import { OfferCard } from '../components/business/OfferCard';
 import { BannerDisplay } from '../components/business/BannerDisplay';
+import { SEOHead } from '../components/seo/SEOHead';
 
 export const OffersPage: React.FC = () => {
   const [offers, setOffers] = useState<Offer[]>([]);
@@ -58,6 +59,15 @@ export const OffersPage: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-6 sm:py-10 pb-24">
+      <SEOHead
+        title="Local Offers & Discounts in Vidisha – Exclusive City Deals | Vidisha City"
+        description="Save money with exclusive daily deals, discounts, and festive offers from verified local shops and businesses in Vidisha, Madhya Pradesh."
+        canonical="/offers"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Offers & Deals', url: '/offers' },
+        ]}
+      />
       {/* Page Header */}
       <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10">
         <div className="inline-flex items-center space-x-1.5 px-3.5 py-1 rounded-full bg-[#1c1c22] text-gold-400 text-xs font-bold mb-3 border border-gold-500/30">

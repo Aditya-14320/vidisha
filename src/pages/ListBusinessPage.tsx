@@ -19,6 +19,7 @@ import { Category, ListingPackageId, ListingApplication } from '../types';
 import { CategoryService } from '../services/categoryService';
 import { ApplicationService } from '../services/applicationService';
 import { ImageUploadInput } from '../components/common/ImageUploadInput';
+import { SEOHead } from '../components/seo/SEOHead';
 
 export const ListBusinessPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -280,6 +281,16 @@ export const ListBusinessPage: React.FC = () => {
   // APPLICATION FORM
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-28 text-white">
+      <SEOHead
+        title="List Your Business in Vidisha – Free & Priority Vendor Registration | Vidisha City"
+        description="Register your shop, clinic, restaurant, or service on Vidisha's official local business discovery portal. Reach local customers with verified listings."
+        canonical="/list-your-business"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'List Business', url: '/list-your-business' },
+        ]}
+      />
+
       {/* Header */}
       <div className="text-center max-w-2xl mx-auto mb-8">
         <span className="text-xs font-bold text-gold-400 uppercase tracking-wider">

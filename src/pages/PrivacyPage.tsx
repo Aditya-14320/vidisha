@@ -1,8 +1,14 @@
 import React from 'react';
+import { SEOHead } from '../components/seo/SEOHead';
 
 export const PrivacyPage: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-28 text-white">
+      <SEOHead
+        title="Privacy Policy – Vidisha City Directory"
+        description="Read the privacy policy of Vidisha City. Learn how we handle local directory information and protect user privacy."
+        canonical="/privacy"
+      />
       <h1 className="font-serif text-2xl sm:text-4xl font-bold text-white tracking-tight mb-2">
         Privacy Policy
       </h1>

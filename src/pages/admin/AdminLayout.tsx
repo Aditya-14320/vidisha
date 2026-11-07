@@ -19,6 +19,7 @@ import {
   Database
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { SEOHead } from '../../components/seo/SEOHead';
 
 export const AdminLayout: React.FC = () => {
   const { currentUser, isAdmin, logout } = useAuth();
@@ -54,6 +55,7 @@ export const AdminLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col md:flex-row text-slate-900 admin-layout">
+      <SEOHead title="Admin Console – Vidisha City" noIndex={true} />
       {/* Mobile Top Header for Admin */}
       <div className="md:hidden bg-slate-900 text-white p-4 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center space-x-2">

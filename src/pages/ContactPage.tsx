@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MessageSquare, MapPin, CheckCircle2 } from 'lucide-react';
+import { SEOHead } from '../components/seo/SEOHead';
 
 export const ContactPage: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
@@ -14,6 +15,15 @@ export const ContactPage: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-28 text-white">
+      <SEOHead
+        title="Contact Vidisha City – Help, Support & Business Listings | Vidisha City"
+        description="Get in touch with the Vidisha City directory team for listing queries, advertising support, or community feedback. Phone: 7000845940."
+        canonical="/contact"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Contact Support', url: '/contact' },
+        ]}
+      />
       <div className="text-center max-w-2xl mx-auto mb-10">
         <h1 className="font-serif text-2xl sm:text-4xl font-bold text-white tracking-tight mb-2">
           Contact Vidisha City Support

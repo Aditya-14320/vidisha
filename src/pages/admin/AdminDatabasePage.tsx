@@ -18,9 +18,11 @@ import {
   Save,
   Check,
   X,
-  Eraser
+  Eraser,
+  Globe
 } from 'lucide-react';
 import { StorageService } from '../../services/storageService';
+import { SitemapService } from '../../services/sitemapService';
 import { Business, Category, Offer, ListingApplication, PaymentRecord } from '../../types';
 
 export const AdminDatabasePage: React.FC = () => {
@@ -133,6 +135,12 @@ export const AdminDatabasePage: React.FC = () => {
     }
   };
 
+  const handleDownloadSitemap = () => {
+    const db = StorageService.exportFullDatabase();
+    SitemapService.downloadSitemapXml(db.businesses || [], db.categories || []);
+    setMessage({ text: 'Google-compliant sitemap.xml generated and downloaded with current live listings!', type: 'success' });
+  };
+
   const handleResetToSeed = () => {
     if (!window.confirm('Load official Vidisha seed database? This will populate all verified categories, sample shops, and offers.')) return;
     StorageService.resetToFullSeedDatabase();
@@ -235,6 +243,15 @@ export const AdminDatabasePage: React.FC = () => {
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export Backup</span>
+          </button>
+
+          <button
+            onClick={handleDownloadSitemap}
+            className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-sm flex items-center space-x-1.5"
+            title="Download Google-compliant sitemap.xml with live public business routes"
+          >
+            <Globe className="w-3.5 h-3.5" />
+            <span>Export sitemap.xml</span>
           </button>
 
           <button

@@ -29,38 +29,37 @@ export const Footer: React.FC = () => {
           {/* Quick Links */}
           <div>
             <h3 className="font-serif text-white font-bold text-sm uppercase tracking-wider mb-4 border-b border-[#24242a] pb-2">
-              Explore Vidisha
+              Popular in Vidisha
             </h3>
             <ul className="space-y-2.5 text-xs sm:text-sm">
               <li>
-                <Link to="/categories" className="text-[#a1a1aa] hover:text-gold-400 transition-colors">
-                  All Business Categories
+                <Link to="/restaurants-in-vidisha" className="text-[#a1a1aa] hover:text-gold-400 transition-colors">
+                  Restaurants & Cafes
                 </Link>
               </li>
               <li>
-                <Link to="/offers" className="text-[#a1a1aa] hover:text-gold-400 transition-colors">
-                  Current City Privileges & Deals
+                <Link to="/hotels-in-vidisha" className="text-[#a1a1aa] hover:text-gold-400 transition-colors">
+                  Hotels & Lodges
                 </Link>
               </li>
               <li>
-                <Link to="/search" className="text-[#a1a1aa] hover:text-gold-400 transition-colors">
-                  Search Directory
+                <Link to="/doctors-in-vidisha" className="text-[#a1a1aa] hover:text-gold-400 transition-colors">
+                  Doctors & Clinics
                 </Link>
               </li>
               <li>
-                <Link to="/pricing" className="text-[#a1a1aa] hover:text-gold-400 transition-colors">
-                  Business Placement Packages
+                <Link to="/coaching-in-vidisha" className="text-[#a1a1aa] hover:text-gold-400 transition-colors">
+                  Coaching Institutes
                 </Link>
               </li>
               <li>
-                <Link to="/advertise" className="text-gold-400 hover:text-gold-300 transition-colors font-medium flex items-center space-x-1">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Banner Advertising</span>
+                <Link to="/gyms-in-vidisha" className="text-[#a1a1aa] hover:text-gold-400 transition-colors">
+                  Gyms & Fitness Clubs
                 </Link>
               </li>
               <li>
-                <Link to="/list-your-business" className="text-gold-400 hover:text-gold-300 transition-colors font-semibold">
-                  Register Your Business +
+                <Link to="/offers" className="text-gold-400 hover:text-gold-300 transition-colors font-medium">
+                  Exclusive City Offers
                 </Link>
               </li>
             </ul>

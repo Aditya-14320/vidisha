@@ -117,10 +117,10 @@ export const SearchBanner: React.FC<SearchBannerProps> = ({ categories }) => {
         <div className="relative z-10 max-w-2xl text-left pt-2 sm:pt-4">
           <h1 className="text-white font-serif italic text-2xl sm:text-3xl md:text-4xl font-normal tracking-wide leading-snug drop-shadow-md">
             Discover Exceptional<br />
-            Local Businesses in
+            Local Businesses in<span className="sr-only"> Vidisha, Madhya Pradesh</span>
           </h1>
           
-          <div className="text-gold-400 font-script text-6xl sm:text-7xl md:text-8xl leading-none my-1 drop-shadow-[0_4px_20px_rgba(212,168,49,0.4)] select-none">
+          <div className="text-gold-400 font-script text-6xl sm:text-7xl md:text-8xl leading-none my-1 drop-shadow-[0_4px_20px_rgba(212,168,49,0.4)] select-none" aria-hidden="true">
             Vidisha
           </div>
 

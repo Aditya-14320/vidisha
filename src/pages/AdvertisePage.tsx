@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import type { BannerPackage, BannerPlacement } from '../types';
 import { BannerService } from '../services/bannerService';
+import { SEOHead } from '../components/seo/SEOHead';
 
 const WHATSAPP_NUMBER = '917000845940';
 
@@ -192,6 +193,16 @@ export const AdvertisePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#0d0d0d] text-white pb-28">
+      <SEOHead
+        title="Advertise on Vidisha City – Banner & Sponsored Campaigns | Vidisha City"
+        description="Promote your business on Vidisha City with prominent homepage and category banner advertising. Direct WhatsApp booking and instant campaign approval."
+        canonical="/advertise"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Banner Advertising', url: '/advertise' },
+        ]}
+      />
+
       {/* 1. Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-r from-[#17171d] via-[#1f1f26] to-[#141418] border-b border-[#24242c] text-white">
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 text-center">

@@ -10,6 +10,8 @@ import { DynamicIcon } from '../components/common/DynamicIcon';
 import { BusinessCard } from '../components/business/BusinessCard';
 import { BannerDisplay } from '../components/business/BannerDisplay';
 import { BusinessCardSkeleton } from '../components/common/SkeletonCard';
+import { SEOHead } from '../components/seo/SEOHead';
+import { buildItemListSchema } from '../utils/schemaGenerator';
 
 export const CategoryDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -81,8 +83,29 @@ export const CategoryDetailPage: React.FC = () => {
     new Set([...top10Businesses, ...otherBusinesses].map(b => b.locality))
   ).filter(Boolean);
 
+  const allCategoryBusinesses = [...top10Businesses, ...otherBusinesses];
+
   return (
     <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-8 pb-24">
+      {/* Dynamic Category SEO Head */}
+      <SEOHead
+        title={`${category.name} in Vidisha – Top Verified Listings & Contacts | Vidisha City`}
+        description={`Find verified ${category.name.toLowerCase()} in Vidisha, MP. ${category.description || ''} Addresses, phone numbers, ratings, and directions.`}
+        canonical={`/category/${category.slug}`}
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Categories', url: '/categories' },
+          { name: category.name, url: `/category/${category.slug}` },
+        ]}
+        structuredData={buildItemListSchema(
+          `${category.name} in Vidisha`,
+          allCategoryBusinesses.map(b => ({
+            name: b.name,
+            url: `/business/${b.slug || b.id}`,
+          }))
+        )}
+      />
+
       {/* Back button */}
       <Link
         to="/categories"

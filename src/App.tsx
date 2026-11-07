@@ -15,6 +15,7 @@ import { TermsPage } from './pages/TermsPage';
 import { ContactPage } from './pages/ContactPage';
 import { AdvertisePage } from './pages/AdvertisePage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { SEOCategoryPage } from './pages/SEOCategoryPage';
 import { ScrollToTop } from './components/common/ScrollToTop';
 
 // Admin Pages
@@ -42,6 +43,12 @@ export const App: React.FC = () => {
           <Route index element={<HomePage />} />
           <Route path="categories" element={<CategoriesPage />} />
           <Route path="category/:slug" element={<CategoryDetailPage />} />
+          {/* SEO High-Intent Targeted Category Landing Routes */}
+          <Route path="restaurants-in-vidisha" element={<SEOCategoryPage categoryKey="restaurants" />} />
+          <Route path="hotels-in-vidisha" element={<SEOCategoryPage categoryKey="hotels" />} />
+          <Route path="doctors-in-vidisha" element={<SEOCategoryPage categoryKey="doctors" />} />
+          <Route path="coaching-in-vidisha" element={<SEOCategoryPage categoryKey="coaching" />} />
+          <Route path="gyms-in-vidisha" element={<SEOCategoryPage categoryKey="gyms" />} />
           <Route path="business/:slug" element={<BusinessDetailPage />} />
           <Route path="search" element={<SearchPage />} />
           <Route path="offers" element={<OffersPage />} />

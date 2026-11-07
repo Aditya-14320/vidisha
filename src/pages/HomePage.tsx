@@ -17,6 +17,8 @@ import { BusinessCard } from '../components/business/BusinessCard';
 import { OfferCard } from '../components/business/OfferCard';
 import { BannerDisplay } from '../components/business/BannerDisplay';
 import { BusinessCardSkeleton, CategoryCardSkeleton } from '../components/common/SkeletonCard';
+import { SEOHead } from '../components/seo/SEOHead';
+import { buildWebSiteSchema } from '../utils/schemaGenerator';
 
 export const HomePage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -58,6 +60,14 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6">
+      <SEOHead
+        title="Vidisha City – Discover Local Businesses in Vidisha, Madhya Pradesh"
+        description="Discover the best local businesses in Vidisha. Explore restaurants, hotels, doctors, coaching institutes, gyms and more with Vidisha City."
+        canonical="/"
+        ogType="website"
+        structuredData={buildWebSiteSchema()}
+      />
+
       {/* Top Search Hero Banner matching reference screenshot */}
       <SearchBanner categories={categories} />
 

@@ -1,8 +1,14 @@
 import React from 'react';
+import { SEOHead } from '../components/seo/SEOHead';
 
 export const TermsPage: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-28 text-white">
+      <SEOHead
+        title="Terms of Service – Vidisha City Directory"
+        description="Review the terms and conditions for using the Vidisha City local business discovery portal and advertising directory."
+        canonical="/terms"
+      />
       <h1 className="font-serif text-2xl sm:text-4xl font-bold text-white tracking-tight mb-2">
         Terms of Service
       </h1>

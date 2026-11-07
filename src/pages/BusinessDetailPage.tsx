@@ -20,6 +20,8 @@ import { BusinessService } from '../services/businessService';
 import { OfferService } from '../services/offerService';
 import { ReportModal } from '../components/business/ReportModal';
 import { OfferCard } from '../components/business/OfferCard';
+import { SEOHead } from '../components/seo/SEOHead';
+import { buildLocalBusinessSchema } from '../utils/schemaGenerator';
 
 export const BusinessDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -111,6 +113,22 @@ export const BusinessDetailPage: React.FC = () => {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
+      {/* Comprehensive SEO Head */}
+      <SEOHead
+        title={`${business.name} – ${business.categoryName} in Vidisha | Vidisha City`}
+        description={`${business.name} located in ${business.locality || 'Vidisha'}, MP. ${business.description ? business.description.slice(0, 150) + '...' : ''} View contact numbers, verified address, reviews, and services.`}
+        canonical={`/business/${business.slug || business.id}`}
+        ogType="business.business"
+        ogImage={selectedPhoto || business.coverImageUrl || business.gallery?.[0] || 'https://vidishacity.in/logo.png'}
+        structuredData={buildLocalBusinessSchema(business)}
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Categories', url: '/categories' },
+          { name: business.categoryName, url: `/category/${business.categorySlug}` },
+          { name: business.name, url: `/business/${business.slug || business.id}` },
+        ]}
+      />
+
       {/* Navigation Breadcrumb */}
       <div className="flex items-center justify-between mb-5">
         <Link
@@ -169,7 +187,13 @@ export const BusinessDetailPage: React.FC = () => {
                     : 'border-transparent opacity-60 hover:opacity-100 hover:border-[#383844]'
                 }`}
               >
-                <img src={photo} alt="" className="w-full h-full object-cover" />
+                <img
+                  src={photo}
+                  alt={`${business.name} - Gallery Photo ${index + 1}`}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-full object-cover"
+                />
               </button>
             ))}
           </div>
@@ -189,7 +213,10 @@ export const BusinessDetailPage: React.FC = () => {
                 )}
               </div>
               <h1 className="font-serif text-2xl sm:text-3xl font-bold text-white tracking-tight mb-2">
-                {business.name}
+                <span>{business.name}</span>
+                <span className="text-base sm:text-lg font-normal text-gold-400 block sm:inline sm:ml-2">
+                  – {business.categoryName} in Vidisha
+                </span>
               </h1>
               <p className="text-sm text-[#d4d4d8] flex items-center space-x-1.5 mb-3 font-light">
                 <MapPin className="w-4 h-4 text-gold-400 shrink-0" />

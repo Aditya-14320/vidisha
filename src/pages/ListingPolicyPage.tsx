@@ -1,9 +1,15 @@
 import React from 'react';
 import { ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { SEOHead } from '../components/seo/SEOHead';
 
 export const ListingPolicyPage: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-28 text-white">
+      <SEOHead
+        title="Listing & Verification Policy – Vidisha City"
+        description="Learn about our standards for business verification, commercial listings, and quality guidelines on Vidisha City."
+        canonical="/listing-policy"
+      />
       <div className="mb-8">
         <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#1c1c24] border border-gold-500/30 text-gold-400 text-xs font-bold mb-2">
           <ShieldCheck className="w-3.5 h-3.5" />

@@ -1,10 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPinOff } from 'lucide-react';
+import { SEOHead } from '../components/seo/SEOHead';
 
 export const NotFoundPage: React.FC = () => {
   return (
     <div className="max-w-md mx-auto px-4 py-24 text-center text-white pb-32">
+      <SEOHead
+        title="404 – Page Not Found | Vidisha City"
+        description="The requested page in Vidisha City local directory does not exist or has moved."
+        noIndex={true}
+      />
       <div className="w-16 h-16 rounded-3xl bg-[#1c1c24] border border-gold-500/30 text-gold-400 flex items-center justify-center mx-auto mb-4 shadow-lg">
         <MapPinOff className="w-8 h-8" />
       </div>
