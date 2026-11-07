@@ -20,7 +20,7 @@ export const PACKAGE_PRICING = {
     price: 4000,
     period: 'Year',
     priceText: '₹4,000 / Year',
-    photoLimit: 2,
+    photoLimit: 5,
   },
   priority: {
     id: 'priority' as ListingPackageId,
@@ -28,7 +28,7 @@ export const PACKAGE_PRICING = {
     price: 6000,
     period: 'Year',
     priceText: '₹6,000 / Year',
-    photoLimit: 3,
+    photoLimit: 5,
   },
 } as const;
 

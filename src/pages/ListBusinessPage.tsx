@@ -53,6 +53,8 @@ export const ListBusinessPage: React.FC = () => {
     photo1: '',
     photo2: '',
     photo3: '',
+    photo4: '',
+    photo5: '',
     consentTerms: false,
   });
 
@@ -177,7 +179,13 @@ export const ListBusinessPage: React.FC = () => {
         .map((s) => s.trim())
         .filter(Boolean);
 
-      const gallery = [formData.photo1, formData.photo2, formData.photo3]
+      const gallery = [
+        formData.photo1,
+        formData.photo2,
+        formData.photo3,
+        formData.photo4,
+        formData.photo5
+      ]
         .map((p) => p.trim())
         .filter(Boolean);
 
@@ -290,6 +298,8 @@ export const ListBusinessPage: React.FC = () => {
                   photo1: '',
                   photo2: '',
                   photo3: '',
+                  photo4: '',
+                  photo5: '',
                   consentTerms: false,
                 });
               }}
@@ -823,18 +833,18 @@ export const ListBusinessPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Photograph Fields conditioned on Selected Package */}
+                {/* Photograph Fields */}
                 <div className="space-y-4 p-4 bg-[#181820] rounded-2xl border border-[#2a2a34]">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-gold-400">
-                      Business Photographs & Logo ({formData.requestedPackage === 'complete' ? 'Complete Listing: Up to 2 Photos' : 'Priority Plan: Up to 3 Photos'})
+                      Business Photographs & Logo (Upload Up to 5 High-Quality Photos)
                     </span>
                     <span className="text-[10px] text-[#71717a]">Cloudinary High-Speed Storage</span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <ImageUploadInput
-                      label="Photograph 1 (Storefront)"
+                      label="Photograph 1 (Storefront / Main)"
                       value={formData.photo1}
                       onChange={(url) => setFormData((prev) => ({ ...prev, photo1: url }))}
                       folder="vidisha-applications/storefronts"
@@ -844,7 +854,7 @@ export const ListBusinessPage: React.FC = () => {
                     />
 
                     <ImageUploadInput
-                      label="Photograph 2 (Showroom/Interior)"
+                      label="Photograph 2 (Showroom / Interior)"
                       value={formData.photo2}
                       onChange={(url) => setFormData((prev) => ({ ...prev, photo2: url }))}
                       folder="vidisha-applications/interiors"
@@ -853,17 +863,35 @@ export const ListBusinessPage: React.FC = () => {
                       darkTheme={true}
                     />
 
-                    {formData.requestedPackage === 'priority' && (
-                      <ImageUploadInput
-                        label="Photograph 3 (Specialty/Products)"
-                        value={formData.photo3}
-                        onChange={(url) => setFormData((prev) => ({ ...prev, photo3: url }))}
-                        folder="vidisha-applications/specialties"
-                        placeholder="Upload featured product..."
-                        recommendedSize="Product showcase"
-                        darkTheme={true}
-                      />
-                    )}
+                    <ImageUploadInput
+                      label="Photograph 3 (Specialty / Products)"
+                      value={formData.photo3}
+                      onChange={(url) => setFormData((prev) => ({ ...prev, photo3: url }))}
+                      folder="vidisha-applications/specialties"
+                      placeholder="Upload featured product..."
+                      recommendedSize="Product showcase"
+                      darkTheme={true}
+                    />
+
+                    <ImageUploadInput
+                      label="Photograph 4 (Team / Menu / Offerings)"
+                      value={formData.photo4}
+                      onChange={(url) => setFormData((prev) => ({ ...prev, photo4: url }))}
+                      folder="vidisha-applications/gallery"
+                      placeholder="Upload team or menu..."
+                      recommendedSize="Additional view"
+                      darkTheme={true}
+                    />
+
+                    <ImageUploadInput
+                      label="Photograph 5 (Ambience / Exterior)"
+                      value={formData.photo5}
+                      onChange={(url) => setFormData((prev) => ({ ...prev, photo5: url }))}
+                      folder="vidisha-applications/gallery"
+                      placeholder="Upload additional photo..."
+                      recommendedSize="Additional view"
+                      darkTheme={true}
+                    />
 
                     <ImageUploadInput
                       label="Business Logo (Optional)"

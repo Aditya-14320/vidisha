@@ -39,6 +39,8 @@ export const AdminBusinessesPage: React.FC = () => {
   const [photo1, setPhoto1] = useState('');
   const [photo2, setPhoto2] = useState('');
   const [photo3, setPhoto3] = useState('');
+  const [photo4, setPhoto4] = useState('');
+  const [photo5, setPhoto5] = useState('');
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [saving, setSaving] = useState(false);
   const [localities, setLocalities] = useState<string[]>(DEFAULT_VIDISHA_LOCALITIES);
@@ -129,6 +131,8 @@ export const AdminBusinessesPage: React.FC = () => {
     setPhoto1('');
     setPhoto2('');
     setPhoto3('');
+    setPhoto4('');
+    setPhoto5('');
     setIsAddingLocality(false);
     setNewLocalityInput('');
   };
@@ -140,6 +144,8 @@ export const AdminBusinessesPage: React.FC = () => {
     setPhoto1(biz.gallery?.[0] || '');
     setPhoto2(biz.gallery?.[1] || '');
     setPhoto3(biz.gallery?.[2] || '');
+    setPhoto4(biz.gallery?.[3] || '');
+    setPhoto5(biz.gallery?.[4] || '');
     setIsAddingLocality(false);
     setNewLocalityInput('');
   };
@@ -207,7 +213,7 @@ export const AdminBusinessesPage: React.FC = () => {
         .split(',')
         .map(s => s.trim())
         .filter(Boolean);
-      const gallery = [photo1, photo2, photo3].map(p => p.trim()).filter(Boolean);
+      const gallery = [photo1, photo2, photo3, photo4, photo5].map(p => p.trim()).filter(Boolean);
 
       let formattedMapUrl = (editingBiz.mapUrl || '').trim();
       if (formattedMapUrl && !formattedMapUrl.startsWith('http://') && !formattedMapUrl.startsWith('https://')) {
@@ -795,30 +801,51 @@ export const AdminBusinessesPage: React.FC = () => {
                     recommendedSize="Recommended: 400x400 px"
                   />
 
-                  <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
-                    <ImageUploadInput
-                      label="Gallery Photo 1"
-                      value={photo1}
-                      onChange={(url) => setPhoto1(url)}
-                      folder="vidisha-businesses/gallery"
-                      recommendedSize="Storefront / Exterior"
-                    />
+                  <div className="sm:col-span-2 space-y-2 pt-1">
+                    <label className="block font-bold text-slate-700 text-xs">
+                      Gallery Photos (Up to 5 Photos)
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                      <ImageUploadInput
+                        label="Gallery Photo 1"
+                        value={photo1}
+                        onChange={(url) => setPhoto1(url)}
+                        folder="vidisha-businesses/gallery"
+                        recommendedSize="Storefront / Exterior"
+                      />
 
-                    <ImageUploadInput
-                      label="Gallery Photo 2"
-                      value={photo2}
-                      onChange={(url) => setPhoto2(url)}
-                      folder="vidisha-businesses/gallery"
-                      recommendedSize="Interior / Ambience"
-                    />
+                      <ImageUploadInput
+                        label="Gallery Photo 2"
+                        value={photo2}
+                        onChange={(url) => setPhoto2(url)}
+                        folder="vidisha-businesses/gallery"
+                        recommendedSize="Interior / Ambience"
+                      />
 
-                    <ImageUploadInput
-                      label="Gallery Photo 3"
-                      value={photo3}
-                      onChange={(url) => setPhoto3(url)}
-                      folder="vidisha-businesses/gallery"
-                      recommendedSize="Specialty / Products"
-                    />
+                      <ImageUploadInput
+                        label="Gallery Photo 3"
+                        value={photo3}
+                        onChange={(url) => setPhoto3(url)}
+                        folder="vidisha-businesses/gallery"
+                        recommendedSize="Specialty / Products"
+                      />
+
+                      <ImageUploadInput
+                        label="Gallery Photo 4"
+                        value={photo4}
+                        onChange={(url) => setPhoto4(url)}
+                        folder="vidisha-businesses/gallery"
+                        recommendedSize="Team / Menu / Offerings"
+                      />
+
+                      <ImageUploadInput
+                        label="Gallery Photo 5"
+                        value={photo5}
+                        onChange={(url) => setPhoto5(url)}
+                        folder="vidisha-businesses/gallery"
+                        recommendedSize="Facility / Additional View"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
